@@ -1,0 +1,26 @@
+﻿
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h1>Login</h1>
+
+<form asp-action="Login">
+    <div class="row">
+        <div action="col-sm-2">
+            請輸入帳號:
+        </div>
+        <div action="col-sm-6">
+            <input name="username" id="username" required />
+        </div>
+        <div action="col-sm-2">
+            請輸入密碼:
+        </div>
+        <div action="col-sm-6">
+            <input name="password" id="password" type="password" required />
+        </div>
+        <div action="col-sm-2">
+            <p><br /><input type="submit" class="btn btn-primary" value="Login" /></p>
+        </div>
+    </div>
+</form>
