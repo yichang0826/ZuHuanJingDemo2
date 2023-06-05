@@ -23,7 +23,7 @@ namespace ZuHuanJingDemo2.Controllers
             _configuration = configuration;
         }
 
-        // GET: Members
+        #region ======================================================================== Index
         public IActionResult Index()
         {
             string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
@@ -65,34 +65,147 @@ namespace ZuHuanJingDemo2.Controllers
                 ViewBag.Text = $"出現錯誤：{ex.Message}";
                 return View();
             }
-
             return View(users);
         }
 
-        // GET: Members/Details/5
-        public async Task<IActionResult> Details(int? id)
+        //[Route("[controller]")]
+        //[HttpGet("GetMembers")]
+        //public IActionResult GetMembers()
+        //{
+        //    string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+        //    List<Member> users = new();
+        //    try
+        //    {
+        //        using MySqlConnection connection = new(connectionString);
+        //        connection.Open();
+        //        string selectQuery = "SELECT * FROM `member`";
+        //        using MySqlCommand command = new(selectQuery, connection);
+        //        using MySqlDataReader reader = command.ExecuteReader();
+        //        while (reader.Read())
+        //        {
+        //            if (!reader.IsDBNull(0) && !reader.IsDBNull(1))
+        //            {
+        //                int id = reader.GetInt32("Member_Id");
+        //                string name = reader.GetString("Member_Name");
+        //                string account = reader.GetString("Member_Account");
+        //                string password = reader.GetString("Member_Password");
+        //                string email = reader.GetString("Member_Email");
+        //                int isbaned = reader.GetInt32("Is_Baned");
+        //                DateTime createdate = reader.GetDateTime("Member_CreateDate");
+        //                Member user = new()
+        //                {
+        //                    Member_Id = id,
+        //                    Member_Name = name,
+        //                    Member_Account = account,
+        //                    Member_Password = password,
+        //                    Member_Email = email,
+        //                    Is_Baned = isbaned,
+        //                    Member_CreateDate = createdate
+        //                };
+        //                users.Add(user);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { error = $"出現錯誤：{ex.Message}" });
+        //    }
+        //    return Ok(users);
+        //}
+        #endregion
+
+        #region ======================================================================== Details
+        public IActionResult Details(int? id)
         {
-            if (id == null || _context.Member == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var member = await _context.Member
-                .FirstOrDefaultAsync(m => m.Member_Id == id);
-            if (member == null)
+            try
             {
-                return NotFound();
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                using MySqlConnection connection = new(connectionString);
+                connection.Open();
+                string selectQuery = "SELECT m.*, ml.CreatedDate, l.* " +
+                             "FROM `Member` m " +
+                             "LEFT JOIN `MemberLicense` ml ON m.Member_Id = ml.MemberId " +
+                             "LEFT JOIN `License` l ON ml.LicenseId = l.License_Id " +
+                             "WHERE m.Member_Id = @MemberId";
+
+                using MySqlCommand command = new(selectQuery, connection);
+                command.Parameters.AddWithValue("@MemberId", id);
+
+                try
+                {
+                    using MySqlDataReader reader = command.ExecuteReader();
+                    Member? member = null;
+                    while (reader.Read())
+                    {
+                        if (member == null)
+                        {
+                            int memberId = reader.GetInt32("Member_Id");
+                            string memberName = reader.GetString("Member_Name");
+                            string memberAccount = reader.GetString("Member_Account");
+                            string memberPassword = reader.GetString("Member_Password");
+                            string memberEmail = reader.GetString("Member_Email");
+                            int isBaned = reader.GetInt32("Is_Baned");
+                            DateTime createDate = reader.GetDateTime("Member_CreateDate");
+
+                            member = new Member()
+                            {
+                                Member_Id = memberId,
+                                Member_Name = memberName,
+                                Member_Account = memberAccount,
+                                Member_Password = memberPassword,
+                                Member_Email = memberEmail,
+                                Is_Baned = isBaned,
+                                Member_CreateDate = createDate,
+                                Member_Licenses = new List<License>()
+                            };
+                        }
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("License_Id")))
+                        {
+                            int licenseId = reader.GetInt32("License_Id");
+                            string licenseName = reader.GetString("License_Name");
+                            string licenseIntroduction = reader.GetString("License_Introduction");
+                            DateTime licenseCreateDate = reader.GetDateTime("CreatedDate");
+
+                            License license = new()
+                            {
+                                License_Id = licenseId,
+                                License_Name = licenseName,
+                                License_Introduction = licenseIntroduction,
+                                License_CreateDate = licenseCreateDate
+                            };
+
+                            member.Member_Licenses.Add(license);
+                        }
+                    }
+                    if (member == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return View(member);
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.Text = $"出現錯誤2：{ex.Message}";
+                    return View();
+                }
             }
-
-            return View(member);
+            catch (Exception ex)
+            {
+                ViewBag.Text = $"出現錯誤1：{ex.Message}";
+                return View();
+            }
         }
+        #endregion
 
-        // GET: Members/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
+        #region ======================================================================== Create
+        public IActionResult Create() { return View(); }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Member_Name,Member_Account,Member_Password,Member_Email,Is_Baned")] Member member)
@@ -103,11 +216,11 @@ namespace ZuHuanJingDemo2.Controllers
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
                 try
                 {
-                    using MySqlConnection connection = new MySqlConnection(connectionString);
+                    using MySqlConnection connection = new(connectionString);
                     await connection.OpenAsync();
                     string insertQuery = "INSERT INTO `Member` (Member_Name, Member_Account, Member_Password, Member_Email, Is_Baned, Member_CreateDate) " +
                                          "VALUES ( @Member_Name, @Member_Account, @Member_Password, @Member_Email, @Is_Baned, @Member_CreateDate)";
-                    using MySqlCommand command = new MySqlCommand(insertQuery, connection);
+                    using MySqlCommand command = new(insertQuery, connection);
                     command.Parameters.AddWithValue("@Member_Name", member.Member_Name);
                     command.Parameters.AddWithValue("@Member_Account", member.Member_Account);
                     command.Parameters.AddWithValue("@Member_Password", member.Member_Password);
@@ -129,94 +242,198 @@ namespace ZuHuanJingDemo2.Controllers
                 return View(member);
             }
         }
+        #endregion
 
-
-        // GET: Members/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        #region ======================================================================== Edit
+        public IActionResult Edit(int? id)
         {
-            if (id == null || _context.Member == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var member = await _context.Member.FindAsync(id);
-            if (member == null)
+            string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+            try
             {
-                return NotFound();
+                using MySqlConnection connection = new MySqlConnection(connectionString);
+                connection.Open();
+
+                string selectQuery = "SELECT * FROM `member` WHERE `Member_Id` = @MemberId";
+                using MySqlCommand command = new MySqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@MemberId", id);
+
+                using MySqlDataReader reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    int memberId = reader.GetInt32("Member_Id");
+                    string memberName = reader.GetString("Member_Name");
+                    string memberAccount = reader.GetString("Member_Account");
+                    string memberEmail = reader.GetString("Member_Email");
+                    int isBaned = reader.GetInt32("Is_Baned");
+                    DateTime createDate = reader.GetDateTime("Member_CreateDate");
+
+                    Member member = new Member()
+                    {
+                        Member_Id = memberId,
+                        Member_Name = memberName,
+                        Member_Account = memberAccount,
+                        Member_Email = memberEmail,
+                        Is_Baned = isBaned,
+                        Member_CreateDate = createDate
+                    };
+
+                    return View(member);
+                }
+                else
+                {
+                    return NotFound();
+                }
             }
-            return View(member);
+            catch (Exception ex)
+            {
+                ViewBag.Text = $"出現錯誤：{ex.Message}";
+                return View();
+            }
         }
 
-        // POST: Members/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Member_Id,Member_Name,Member_Account,Member_Password,Member_Email,Is_Baned,Member_CreateDate")] Member member)
+        public async Task<IActionResult> Edit(int id, [Bind("Member_Id,Member_Name,Member_Account,Member_Email,Is_Baned,Member_CreateDate")] Member member)
         {
             if (id != member.Member_Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            try
             {
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
                 try
                 {
-                    _context.Update(member);
-                    await _context.SaveChangesAsync();
+                    using MySqlConnection connection = new MySqlConnection(connectionString);
+                    connection.Open();
+
+                    string updateQuery = "UPDATE `member` SET `Member_Name` = @MemberName, `Member_Account` = @MemberAccount, `Member_Email` = @MemberEmail, " +
+                                         "`Is_Baned` = @IsBaned, `Member_CreateDate` = @MemberCreateDate WHERE `Member_Id` = @MemberId";
+
+                    using MySqlCommand command = new(updateQuery, connection);
+                    command.Parameters.AddWithValue("@MemberName", member.Member_Name);
+                    command.Parameters.AddWithValue("@MemberAccount", member.Member_Account);
+                    command.Parameters.AddWithValue("@MemberEmail", member.Member_Email);
+                    command.Parameters.AddWithValue("@IsBaned", member.Is_Baned);
+                    command.Parameters.AddWithValue("@MemberCreateDate", member.Member_CreateDate);
+                    command.Parameters.AddWithValue("@MemberId", id);
+
+                    await command.ExecuteNonQueryAsync();
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!MemberExists(member.Member_Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    ViewBag.Text = $"出現錯誤：{ex.Message}";
+                    return View(member);
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(member);
+            catch (Exception ex)
+            {
+                ViewBag.Text = $"出現錯誤：{ex.Message}";
+                return View(member);
+            }
+        }
+        #endregion
+
+        #region ======================================================================== Delete
+        public async Task<IActionResult> DeleteConfirm(int? id)
+        {
+            if (id == null) { return NotFound(); }
+
+            try
+            {
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                using MySqlConnection connection = new(connectionString);
+                connection.Open();
+
+                // 删除 MemberLicense 数据
+                string deleteMemberLicenseQuery = "DELETE FROM `MemberLicense` WHERE `MemberId` = @MemberId";
+                using MySqlCommand deleteMemberLicenseCommand = new(deleteMemberLicenseQuery, connection);
+                deleteMemberLicenseCommand.Parameters.AddWithValue("@MemberId", id);
+                await deleteMemberLicenseCommand.ExecuteNonQueryAsync();
+
+                // 删除 Member 数据
+                string deleteMemberQuery = "DELETE FROM `Member` WHERE `Member_Id` = @MemberId";
+                using MySqlCommand deleteMemberCommand = new(deleteMemberQuery, connection);
+                deleteMemberCommand.Parameters.AddWithValue("@MemberId", id);
+                await deleteMemberCommand.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Text = $"出現錯誤：{ex.Message}";
+                return RedirectToAction("Index");
+            }
+            return RedirectToAction("Index");
         }
 
-        // GET: Members/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        //[HttpPost, ActionName("Delete")]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> DeleteConfirmed(int id)
+        //{
+        //    if (_context.Member == null)
+        //    {
+        //        return Problem("Entity set 'ZuHuanJingDemo2Context.Member'  is null.");
+        //    }
+        //    var member = await _context.Member.FindAsync(id);
+        //    if (member != null)
+        //    {
+        //        _context.Member.Remove(member);
+        //    }
+
+        //    await _context.SaveChangesAsync();
+        //    return RedirectToAction(nameof(Index));
+        //}
+        #endregion
+
+        public IActionResult Search(string? query, string sortField, string sortFun)
         {
-            if (id == null || _context.Member == null)
+            try
             {
-                return NotFound();
-            }
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                List<Member> members = new();
 
-            var member = await _context.Member
-                .FirstOrDefaultAsync(m => m.Member_Id == id);
-            if (member == null)
+                using MySqlConnection connection = new MySqlConnection(connectionString);
+                connection.Open();
+
+                string selectQuery = "SELECT * FROM `Member` WHERE `Member_Name` LIKE @Query OR `Member_Account` LIKE @Query OR `Member_Id` LIKE @Query ORDER BY " + sortField + " " + sortFun ;
+
+                using MySqlCommand command = new MySqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@Query", $"%{query}%");
+
+                using MySqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    int memberId = reader.GetInt32("Member_Id");
+                    string memberName = reader.GetString("Member_Name");
+                    string memberAccount = reader.GetString("Member_Account");
+                    string memberEmail = reader.GetString("Member_Email");
+                    int isBaned = reader.GetInt32("Is_Baned");
+                    DateTime createDate = reader.GetDateTime("Member_CreateDate");
+
+                    Member member = new Member()
+                    {
+                        Member_Id = memberId,
+                        Member_Name = memberName,
+                        Member_Account = memberAccount,
+                        Member_Email = memberEmail,
+                        Is_Baned = isBaned,
+                        Member_CreateDate = createDate
+                    };
+                    members.Add(member);
+                }
+                return PartialView("_MemberList", members);
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                ViewBag.Text = $"出現錯誤：{ex.Message}";
+                return View();
             }
-
-            return View(member);
-        }
-
-        // POST: Members/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Member == null)
-            {
-                return Problem("Entity set 'ZuHuanJingDemo2Context.Member'  is null.");
-            }
-            var member = await _context.Member.FindAsync(id);
-            if (member != null)
-            {
-                _context.Member.Remove(member);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
         }
 
         private bool MemberExists(int id)

@@ -24,11 +24,26 @@ namespace ZuHuanJingDemo2.Controllers
 
         public IActionResult Index()
         {
+            if (User.Identity?.Name == "admin")
+            {
+                return RedirectToAction("Index","Members");
+            }
             return View();
         }
 
         public IActionResult Privacy()
         {
+            return View();
+        }
+
+        public ActionResult Vue()
+        {
+            return View();
+        }
+
+        public ActionResult ErrorView()
+        {
+            ViewBag.Text = "Error";
             return View();
         }
 
@@ -92,6 +107,7 @@ namespace ZuHuanJingDemo2.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });

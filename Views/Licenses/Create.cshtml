@@ -1,0 +1,41 @@
+﻿@model ZuHuanJingDemo2.Models.License
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Create</h1>
+
+<h4>License</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="License_Name" class="control-label"></label>
+                <input asp-for="License_Name" class="form-control" />
+                <span asp-validation-for="License_Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="License_Introduction" class="control-label"></label>
+                <input asp-for="License_Introduction" class="form-control" />
+                <span asp-validation-for="License_Introduction" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="License_CreateDate" class="control-label"></label>
+                <input asp-for="License_CreateDate" class="form-control" />
+                <span asp-validation-for="License_CreateDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+

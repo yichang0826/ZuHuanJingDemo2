@@ -17,5 +17,7 @@ namespace ZuHuanJingDemo2.Data
         public DbSet<ZuHuanJingDemo2.Models.Member> Member { get; set; } = default!;
 
         public DbSet<ZuHuanJingDemo2.Models.Course>? Course { get; set; }
+
+        public DbSet<ZuHuanJingDemo2.Models.License>? License { get; set; }
     }
 }

@@ -4,8 +4,7 @@ namespace ZuHuanJingDemo2.Models
 {
     public class Course
     {
-        [Key]public int Course_Id { get; set; }
-
+        [Display(Name = "課程編號")][Key]public int Course_Id { get; set; }
         [Display(Name = "課程名稱")][StringLength(255)][Required]public string? Course_Name { get; set; }
         [Display(Name = "課程教師")][StringLength(255)][Required]public string? Course_Teacher { get; set; }
         [Display(Name = "課程介紹")][Required]public string? Course_Introduction { get; set; }

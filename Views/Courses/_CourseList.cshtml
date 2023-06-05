@@ -1,0 +1,50 @@
+﻿@model List<ZuHuanJingDemo2.Models.Course>
+
+
+@if (Model != null)
+{
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Course_Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Course_Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Course_Teacher)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Course_MaxCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Course_SumCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Course_StartDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Course_EndDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Course_CreateDate)
+            </td>
+            <td>
+                @if (item.Course_IsActive == 0)
+                {
+                    <label>否</label>
+                }
+                else
+                {
+                    <label>是</label>
+                }
+            </td>
+            <td>
+                <a asp-action="Edit" class="btn btn-primary" asp-route-id="@item.Course_Id">Edit</a>
+                <a asp-action="Details" class="btn btn-info" asp-route-id="@item.Course_Id">Details</a>
+                <a asp-action="DeleteConfirm" class="btn btn-danger" asp-route-id="@item.Course_Id" onclick="return confirm('確定要刪除嗎?')">Delete</a>
+            </td>
+        </tr>
+    }
+}

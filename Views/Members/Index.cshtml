@@ -4,65 +4,181 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>會員列表</h1>
+<hr />
+<div class="row">
+    <div class="col-12">
+        <a asp-action="Create" class="btn btn-secondary">新建</a> |
+        <input name="search" value="" style="width:50%;" placeholder="可搜尋 : 編號、名稱、帳號" /> |
+        <button id="searchbut" class="btn btn-info">搜尋</button>
+        <button id="clearbut" class="btn btn-primary">清空</button>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-6">
+        <label>排序項目</label>
+        <div>
+            <input name="sort" id="sort-id" value="Member_Id" type="radio" checked />
+            <label for="sort-id">編號</label>
+            <input name="sort" id="sort-name" value="Member_Name" type="radio" />
+            <label for="sort-name">名稱</label>
+            <input name="sort" id="sort-account" value="Member_Account" type="radio" />
+            <label for="sort-account">帳號</label>
+            <input name="sort" id="sort-date" value="Member_CreateDate" type="radio" />
+            <label for="sort-date">創建日期</label>
+        </div>
+    </div>
+    <div class="col-6">
+        <label>排序方法</label>
+        <div>
+            <input name="sortfun" id="sort-asc" value="ASC" type="radio" checked />
+            <label for="sort-asc">正序</label>
+            <input name="sortfun" id="sort-desc" value="DESC" type="radio" />
+            <label for="sort-desc">倒序</label>
+        </div>
+    </div>
+</div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+<div id="loadingIndicator"></div>
+
+<table class="table" id="membersTable">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Member_Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Member_Account)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Member_Password)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Member_Email)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Is_Baned)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Member_CreateDate)
-            </th>
+            @*<th>@Html.DisplayNameFor(model => model.Member_Id)</th>
+            <th>@Html.DisplayNameFor(model => model.Member_Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Member_Account)</th>
+            <th>@Html.DisplayNameFor(model => model.Member_Email)</th>
+            <th>@Html.DisplayNameFor(model => model.Is_Baned)</th>
+            <th>@Html.DisplayNameFor(model => model.Member_CreateDate)</th>*@
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-        @if (Model != null)
-        {
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Member_Name)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Member_Account)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Member_Password)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Member_Email)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Is_Baned)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Member_CreateDate)
-                    </td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.Member_Id">Edit</a> |
-                        <a asp-action="Details" asp-route-id="@item.Member_Id">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.Member_Id">Delete</a>
-                    </td>
-                </tr>
-            }   }
+        @await Html.PartialAsync("_MemberList", Model)
     </tbody>
 </table>
+
+<style>
+    #loadingIndicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* 半透明的背景色 */
+        z-index: 9999;
+        display: none;
+    }
+
+        #loadingIndicator::after {
+            content: "Loading...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+        }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            //清空按鈕點擊事件
+            $("#clearbut").click(function () {
+                showLoading(); // 显示加载状态
+                $("input[name='search']").val('');
+                var searchQuery = $("input[name='search']").val();
+                var sortField = $("input[name='sort']:checked").val();
+                var sortFun = $("input[name='sortfun']:checked").val();
+                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
+
+                $.get(url, function (data) {
+                    $("#membersTable tbody").html(data);
+                })
+                    .done(function () {
+                        hideLoading(); // 请求完成后隐藏加载状态
+                    })
+                    .fail(function () {
+                        hideLoading(); // 请求失败时隐藏加载状态
+                    });;
+            });
+            // 搜尋按鈕點擊事件
+            $("#searchbut").click(function () {
+                showLoading(); // 显示加载状态
+                var searchQuery = $("input[name='search']").val();
+                var sortField = $("input[name='sort']:checked").val();
+                var sortFun = $("input[name='sortfun']:checked").val();
+                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
+
+                $.get(url, function (data) {
+                    $("#membersTable tbody").html(data);
+                })
+                    .done(function () {
+                        hideLoading(); // 请求完成后隐藏加载状态
+                    })
+                    .fail(function () {
+                        hideLoading(); // 请求失败时隐藏加载状态
+                    });;
+            });
+            // 排序选项改变事件
+            $("input[name='sort']").change(function () {
+                showLoading(); // 显示加载状态
+                var searchQuery = $("input[name='search']").val();
+                var sortField = $("input[name='sort']:checked").val();
+                var sortFun = $("input[name='sortfun']:checked").val();
+                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
+
+                $.get(url, function (data) {
+                    $("#membersTable tbody").html(data);
+                })
+                    .done(function () {
+                        hideLoading(); // 请求完成后隐藏加载状态
+                    })
+                    .fail(function () {
+                        hideLoading(); // 请求失败时隐藏加载状态
+                    });;
+            });
+            // 排序选项改变事件
+            $("input[name='sortfun']").change(function () {
+                showLoading(); // 显示加载状态
+                var searchQuery = $("input[name='search']").val();
+                var sortField = $("input[name='sort']:checked").val();
+                var sortFun = $("input[name='sortfun']:checked").val();
+                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
+
+                $.get(url, function (data) {
+                    $("#membersTable tbody").html(data);
+                })
+                    .done(function () {
+                        hideLoading(); // 请求完成后隐藏加载状态
+                    })
+                    .fail(function () {
+                        hideLoading(); // 请求失败时隐藏加载状态
+                    });;
+            });
+
+            function showLoading() {
+                // 显示加载状态，覆盖整个视窗
+                var $loadingIndicator = $("#loadingIndicator");
+                $loadingIndicator.fadeIn();
+                $(document.body).css("overflow", "hidden"); // 禁用滚动条
+            }
+
+            function hideLoading() {
+                // 隐藏加载状态
+                var $loadingIndicator = $("#loadingIndicator");
+                $loadingIndicator.fadeOut();
+                $(document.body).css("overflow", ""); // 启用滚动条
+            }
+        });
+    </script>
+}

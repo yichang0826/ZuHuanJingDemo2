@@ -1,0 +1,16 @@
+﻿<!DOCTYPE html>
+
+
+<div id="App">
+    {{ msg }}
+</div>
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                msg: "hello",
+            }
+        },
+    });
+    app.mount('#App');
+</script>

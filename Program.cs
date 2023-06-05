@@ -28,6 +28,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddAuthenticationCore();
 #endregion
 
+// 添加 Razor Pages 服務
+builder.Services.AddRazorPages();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -47,6 +50,12 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 #endregion
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapRazorPages();
+});
 
 app.MapControllerRoute(
     name: "default",

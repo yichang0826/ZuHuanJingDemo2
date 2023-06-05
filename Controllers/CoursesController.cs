@@ -22,7 +22,7 @@ namespace ZuHuanJingDemo2.Controllers
             _configuration = configuration;
         }
 
-        // GET: Courses
+        #region ========================================================= Index
         public IActionResult Index()
         {
             string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
@@ -73,24 +73,81 @@ namespace ZuHuanJingDemo2.Controllers
 
             return View(courses);
         }
+        #endregion
 
-        // GET: Courses/Details/5
-        public async Task<IActionResult> Details(int? id)
+        #region ========================================================= Details
+        public IActionResult Details(int? id)
         {
-            if (id == null || _context.Course == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var course = await _context.Course
-                .FirstOrDefaultAsync(m => m.Course_Id == id);
-            if (course == null)
+            try
             {
-                return NotFound();
-            }
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                using MySqlConnection connection = new MySqlConnection(connectionString);
+                connection.Open();
+                string selectQuery = "SELECT * FROM `Course` WHERE Course_Id = @CourseId";
 
-            return View(course);
+                using MySqlCommand command = new MySqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@CourseId", id);
+
+                try
+                {
+                    using MySqlDataReader reader = command.ExecuteReader();
+                    Course? course = null;
+                    while (reader.Read())
+                    {
+                        if (course == null)
+                        {
+                            int courseId = reader.GetInt32("Course_Id");
+                            string courseName = reader.GetString("Course_Name");
+                            string courseTeacher = reader.GetString("Course_Teacher");
+                            string courseIntroduction = reader.GetString("Course_Introduction");
+                            int courseMaxCount = reader.GetInt32("Course_MaxCount");
+                            int courseSumCount = reader.GetInt32("Course_SumCount");
+                            DateTime courseStartDate = reader.GetDateTime("Course_StartDate");
+                            DateTime courseEndDate = reader.GetDateTime("Course_EndDate");
+                            DateTime createDate = reader.GetDateTime("Course_CreateDate");
+                            int courseIsActive = reader.GetInt32("Course_IsActive");
+
+                            course = new Course()
+                            {
+                                Course_Id = courseId,
+                                Course_Name = courseName,
+                                Course_Teacher = courseTeacher,
+                                Course_Introduction = courseIntroduction,
+                                Course_MaxCount = courseMaxCount,
+                                Course_SumCount = courseSumCount,
+                                Course_StartDate = courseStartDate,
+                                Course_EndDate = courseEndDate,
+                                Course_CreateDate = createDate,
+                                Course_IsActive = courseIsActive
+                            };
+                        }
+                    }
+                    if (course == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return View(course);
+                }
+                catch (Exception ex)
+                {
+                    ViewBag.Text = $"出現錯誤2：{ex.Message}";
+                    return View();
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Text = $"出現錯誤1：{ex.Message}";
+                return View();
+            }
         }
+        #endregion
+
 
         // GET: Courses/Create
         public IActionResult Create()
@@ -229,6 +286,60 @@ namespace ZuHuanJingDemo2.Controllers
             
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult Search(string? query, string sortField, string sortFun)
+        {
+            try
+            {
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                List<Course> courses = new();
+
+                using MySqlConnection connection = new MySqlConnection(connectionString);
+                connection.Open();
+
+                string selectQuery = "SELECT * FROM `Course` WHERE `Course_Name` LIKE @Query OR `Course_Teacher` LIKE @Query OR `Course_Id` LIKE @Query ORDER BY " + sortField + " " + sortFun;
+
+                using MySqlCommand command = new(selectQuery, connection);
+                command.Parameters.AddWithValue("@Query", $"%{query}%");
+
+                using MySqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    int courseId = reader.GetInt32("Course_Id");
+                    string courseName = reader.GetString("Course_Name");
+                    string courseTeacher = reader.GetString("Course_Teacher");
+                    string courseIntroduction = reader.GetString("Course_Introduction");
+                    int courseMaxCount = reader.GetInt32("Course_MaxCount");
+                    int courseSumCount = reader.GetInt32("Course_SumCount");
+                    DateTime courseStartDate = reader.GetDateTime("Course_StartDate");
+                    DateTime courseEndDate = reader.GetDateTime("Course_EndDate");
+                    DateTime createDate = reader.GetDateTime("Course_CreateDate");
+                    int courseIsActive = reader.GetInt32("Course_IsActive");
+                    
+
+                    Course course = new Course()
+                    {
+                        Course_Id = courseId,
+                        Course_Name = courseName,
+                        Course_Teacher = courseTeacher,
+                        Course_MaxCount = courseMaxCount,
+                        Course_SumCount = courseSumCount,
+                        Course_StartDate = courseStartDate,
+                        Course_EndDate = courseEndDate,
+                        Course_CreateDate = createDate,
+                        Course_IsActive = courseIsActive
+                        
+                    };
+                    courses.Add(course);
+                }
+                return PartialView("_CourseList", courses);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Text = $"出現錯誤：{ex.Message}";
+                return View();
+            }
         }
 
         private bool CourseExists(int id)

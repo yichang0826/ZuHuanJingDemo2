@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ZuHuanJingDemo2.styles.css" asp-append-version="true" />
+    @*<script src="https://unpkg.com/vue@next"></script>*@
+    <script src="https://unpkg.com/vue@next/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 </head>
 <body>
     @if(User.Identity?.Name == "admin")
@@ -17,6 +21,7 @@
     {
         @await Component.InvokeAsync("TopMenu")
     }
+
     @if(ViewBag.Text != null)
     {
         <p class="alert">@ViewBag.Text</p>

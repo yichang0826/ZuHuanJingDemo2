@@ -9,46 +9,57 @@
 <div>
     <h4>Member</h4>
     <hr />
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model?.Member_Id">Edit</a> |
+        <a asp-action="Index">Back to List</a>
+    </div>
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Member_Name)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Member_Name)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Member_Account)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Member_Account)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Member_Password)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Member_Password)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Member_Email)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Member_Email)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Is_Baned)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Is_Baned)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Member_CreateDate)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Member_CreateDate)
         </dd>
+        @if (Model is not null && Model.Member_Licenses is not null)
+        {
+            @foreach (var item in Model.Member_Licenses)
+            {
+                <dt class="col-sm-2">@item.License_Id</dt>
+                <dt class="col-sm-4">@item.License_Name</dt>
+                <dt class="col-sm-6">@item.License_CreateDate</dt>
+                <dd class="col-sm-10">@item.License_Introduction</dd>
+            }
+        }
     </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Member_Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    
 </div>
