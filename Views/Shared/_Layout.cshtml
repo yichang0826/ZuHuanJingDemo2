@@ -10,7 +10,8 @@
     @*<script src="https://unpkg.com/vue@next"></script>*@
     <script src="https://unpkg.com/vue@next/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
+    <script type="text/javascript" src="_lib/jquery/jquery.js"></script>
+    <script type="text/javascript" src="jquery.jstree.js"></script>
 </head>
 <body>
     @if(User.Identity?.Name == "admin")
@@ -27,7 +28,7 @@
         <p class="alert">@ViewBag.Text</p>
     }
     <div class="container">
-        <main role="main" class="pb-3">
+        <main role="main">
             @RenderBody()
         </main>
     </div>

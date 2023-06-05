@@ -5,43 +5,54 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Index</h1>
+<h1>課程列表</h1>
 <hr />
 <div class="row">
-    <div class="col-5">
-        <a asp-action="Create" class="btn btn-primary">Create New</a>
-        <input name="search" value="" placeholder="輸入: 編號、名稱、教師" />
-        <button id="searchbut" class="btn btn-info">搜尋</button>
-        <label class="alert-dark"><small>*清空後搜尋即全部顯示*</small></label>
+    <div class="col-12">
+        <a asp-action="Create" class="btn btn-secondary">新建</a>&ensp;
+        <input name="search" value="" style="width:50%;" placeholder="可搜尋 : 編號、名稱、教師" />&ensp;
+        <button id="searchbut" class="btn btn-info">搜尋</button> &ensp;
+        <button id="clearbut" class="btn btn-primary">清空</button>
     </div>
-    <div class="col-4">
-        <label>排序方法</label>
+</div><br />
+<div class="row">
+    <div class="col-6">
+        <label>排序項目</label>
         <div>
-            <input name="sort" id="sort-id" value="Course_Id" type="radio" checked /><label for="sort-id">編號</label>
-            <input name="sort" id="sort-name" value="Course_Name" type="radio" /><label for="sort-name">名稱</label>
-            <input name="sort" id="sort-account" value="Course_Teacher" type="radio" /><label for="sort-account">教師</label>
-            <input name="sort" id="sort-date" value="Course_CreateDate" type="radio" /><label for="sort-date">創建日期</label>
+            <input name="sort" id="sort-id" value="Course_Id" type="radio" checked />
+            <label for="sort-id">編號</label>
+            <input name="sort" id="sort-name" value="Course_Name" type="radio" />
+            <label for="sort-name">名稱</label>
+            <input name="sort" id="sort-account" value="Course_Teacher" type="radio" />
+            <label for="sort-account">教師</label>
+            <input name="sort" id="sort-date" value="Course_CreateDate" type="radio" />
+            <label for="sort-date">創建日期</label>
         </div>
     </div>
-    <div class="col-3">
+    <div class="col-6">
         <label>排序方法</label>
         <div>
-            <input name="sortfun" id="sort-asc" value="ASC" type="radio" checked /><label for="sort-asc">正序</label>
-            <input name="sortfun" id="sort-desc" value="DESC" type="radio" /><label for="sort-desc">倒序</label>
+            <input name="sortfun" id="sort-asc" value="ASC" type="radio" checked />
+            <label for="sort-asc">正序</label>
+            <input name="sortfun" id="sort-desc" value="DESC" type="radio" />
+            <label for="sort-desc">倒序</label>
         </div>
     </div>
 </div>
+<hr />
+<div id="loadingIndicator"></div>
+
 <table class="table" id="coursesTable">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Course_Id)
+                編號
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Course_Name)
+                名稱
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Course_Teacher)
+                教師
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Course_MaxCount)
@@ -68,45 +79,123 @@
         @await Html.PartialAsync("_CourseList", Model)
     </tbody>
 </table>
+
+<style>
+    #loadingIndicator {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* 半透明的背景色 */
+        z-index: 9999;
+        display: none;
+    }
+
+        #loadingIndicator::after {
+            content: "Loading...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+        }
+</style>
+
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
-            // 搜尋按鈕點擊事件
-            $("#searchbut").click(function () {
+            //清空按鈕點擊事件
+            $("#clearbut").click(function () {
+                showLoading(); // 显示加载状态
+                $("input[name='search']").val('');
                 var searchQuery = $("input[name='search']").val();
                 var sortField = $("input[name='sort']:checked").val();
                 var sortFun = $("input[name='sortfun']:checked").val();
-                var url = `/Courses/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
+                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
+
+                $.get(url, function (data) {
+                    $("#membersTable tbody").html(data);
+                })
+                    .done(function () {
+                        hideLoading(); // 请求完成后隐藏加载状态
+                    })
+                    .fail(function () {
+                        hideLoading(); // 请求失败时隐藏加载状态
+                    });
+            });
+            // 搜尋按鈕點擊事件
+            $("#searchbut").click(function () {
+                showLoading(); // 显示加载状态
+                var searchQuery = $("input[name='search']").val();
+                var sortField = $("input[name='sort']:checked").val();
+                var sortFun = $("input[name='sortfun']:checked").val();
+                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
 
                 $.get(url, function (data) {
                     $("#coursesTable tbody").html(data);
-                });
+                })
+                    .done(function () {
+                        hideLoading(); // 请求完成后隐藏加载状态
+                    })
+                    .fail(function () {
+                        hideLoading(); // 请求失败时隐藏加载状态
+                    });
             });
 
             // 排序选项改变事件
             $("input[name='sort']").change(function () {
+                showLoading(); // 显示加载状态
                 var searchQuery = $("input[name='search']").val();
                 var sortField = $("input[name='sort']:checked").val();
                 var sortFun = $("input[name='sortfun']:checked").val();
-                var url = `/Courses/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
+                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
 
                 $.get(url, function (data) {
                     $("#coursesTable tbody").html(data);
-                });
+                })
+                    .done(function () {
+                        hideLoading(); // 请求完成后隐藏加载状态
+                    })
+                    .fail(function () {
+                        hideLoading(); // 请求失败时隐藏加载状态
+                    });
             });
 
             // 排序选项改变事件
             $("input[name='sortfun']").change(function () {
+                showLoading(); // 显示加载状态
                 var searchQuery = $("input[name='search']").val();
                 var sortField = $("input[name='sort']:checked").val();
                 var sortFun = $("input[name='sortfun']:checked").val();
-                var url = `/Courses/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
+                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
 
                 $.get(url, function (data) {
                     $("#coursesTable tbody").html(data);
-                });
+                })
+                    .done(function () {
+                        hideLoading(); // 请求完成后隐藏加载状态
+                    })
+                    .fail(function () {
+                        hideLoading(); // 请求失败时隐藏加载状态
+                    });
             });
+
+            function showLoading() {
+                // 显示加载状态，覆盖整个视窗
+                var $loadingIndicator = $("#loadingIndicator");
+                $loadingIndicator.fadeIn();
+                $(document.body).css("overflow", "hidden"); // 禁用滚动条
+            };
+
+            function hideLoading() {
+                // 隐藏加载状态
+                var $loadingIndicator = $("#loadingIndicator");
+                $loadingIndicator.fadeOut();
+                $(document.body).css("overflow", ""); // 启用滚动条
+            };
         });
     </script>
 }

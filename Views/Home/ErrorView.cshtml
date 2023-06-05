@@ -4,10 +4,8 @@
 @{
     Layout = null;
 }
-@if (ViewBag.Text != null)
-{
-    <label class="alert">
-        @ViewBag.Text :
-        @TempData["Text"]
-    </label>
-}
+
+<label class="alert">
+    @TempData["Text"]<br />
+    @TempData["Detail"]
+</label>

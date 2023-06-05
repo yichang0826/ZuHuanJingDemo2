@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using ZuHuanJingDemo2.Data;
 using ZuHuanJingDemo2.Models;
 using Google.Protobuf.WellKnownTypes;
+using ZuHuanJingDemo2.Models.ViewModel;
+using System.Data;
 
 namespace ZuHuanJingDemo2.Controllers
 {
@@ -205,41 +207,124 @@ namespace ZuHuanJingDemo2.Controllers
         #endregion
 
         #region ======================================================================== Create
-        public IActionResult Create() { return View(); }
+        public IActionResult Create()
+        {
+            List<License> licenseslist = new List<License>();
+            string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+            try
+            {
+                using MySqlConnection connection = new(connectionString);
+                connection.Open();
+                string selectQuery = "SELECT * FROM `license` WHERE `License_IsActive` = 1";
+                using MySqlCommand command = new(selectQuery, connection);
+                using MySqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    if (!reader.IsDBNull(0) && !reader.IsDBNull(1))
+                    {
+                        int id = reader.GetInt32("License_Id");
+                        string name = reader.GetString("License_Name");
+                        string introduction = reader.GetString("License_Introduction");
+                        DateTime createdate = reader.GetDateTime("License_CreateDate");
+                        int isactive = reader.GetInt32("License_IsActive");
+
+                        License license = new License()
+                        {
+                            License_Id = id,
+                            License_Name = name,
+                            License_Introduction = introduction,
+                            License_IsActive = isactive == 1,
+                            License_CreateDate = createdate
+                        };
+                        licenseslist.Add(license);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Text = $"出現錯誤：{ex.Message}";
+                return View("ErrorView", "Home");
+            }
+            ViewData["licenseslist"] = licenseslist;
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Member_Name,Member_Account,Member_Password,Member_Email,Is_Baned")] Member member)
+        public IActionResult Create([Bind("Member_Name,Member_Account,Member_Password,Member_Email,Is_Baned")] Member member, int[] selectedLicenses)
         {
-            DateTime datenow = DateTime.Now;
+            int maxid = 0;
             try
             {
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                using MySqlConnection connection = new(connectionString);
+                connection.Open();
+
+                string selectQuery = "SELECT MAX(`Member_Id`) AS MaxId FROM `member`";
+                using MySqlCommand selectcommand = new MySqlCommand(selectQuery, connection);
+                using MySqlDataReader reader = selectcommand.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    if (!reader.IsDBNull("MaxId"))
+                    {
+                        maxid = reader.GetInt32("MaxId");
+                    }
+                }
+                reader.Close();
+                if (maxid != 0)
+                {
+                    maxid++;
+                }
                 try
                 {
-                    using MySqlConnection connection = new(connectionString);
-                    await connection.OpenAsync();
-                    string insertQuery = "INSERT INTO `Member` (Member_Name, Member_Account, Member_Password, Member_Email, Is_Baned, Member_CreateDate) " +
-                                         "VALUES ( @Member_Name, @Member_Account, @Member_Password, @Member_Email, @Is_Baned, @Member_CreateDate)";
+                    string insertQuery = "INSERT INTO `Member` (Member_Id, Member_Name, Member_Account, Member_Password, Member_Email, Is_Baned, Member_CreateDate) " +
+                                         "VALUES (@Member_Id,  @Member_Name, @Member_Account, @Member_Password, @Member_Email, @Is_Baned, @Member_CreateDate)";
                     using MySqlCommand command = new(insertQuery, connection);
+                    command.Parameters.AddWithValue("@Member_Id", maxid);
                     command.Parameters.AddWithValue("@Member_Name", member.Member_Name);
                     command.Parameters.AddWithValue("@Member_Account", member.Member_Account);
                     command.Parameters.AddWithValue("@Member_Password", member.Member_Password);
                     command.Parameters.AddWithValue("@Member_Email", member.Member_Email);
                     command.Parameters.AddWithValue("@Is_Baned", member.Is_Baned);
-                    command.Parameters.AddWithValue("@Member_CreateDate", datenow);
-                    await command.ExecuteNonQueryAsync();
+                    command.Parameters.AddWithValue("@Member_CreateDate", DateTime.Now);
+                    command.ExecuteNonQuery();
                 }
                 catch (Exception ex)
                 {
-                    ViewBag.Text = $"出現錯誤：{ex.Message}";
-                    return View(member);
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
+                }
+
+                if (selectedLicenses != null)
+                {
+                    try
+                    {
+                        foreach (var licenseId in selectedLicenses)
+                        {
+                            Console.WriteLine(licenseId);
+                            string insertQuery = "INSERT INTO `memberlicense` (MemberId, LicenseId, CreatedDate) " +
+                                             "VALUES ( @MemberId, @LicenseId, @CreatedDate)";
+                            using MySqlCommand command = new(insertQuery, connection);
+                            command.Parameters.AddWithValue("@MemberId", maxid);
+                            command.Parameters.AddWithValue("@LicenseId", licenseId);
+                            command.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                            command.ExecuteNonQuery();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["Text"] = $"出現錯誤：{ex.Message}";
+                        TempData["Detail"] = maxid;
+                        return View("~/Views/Home/ErrorView.cshtml");
+                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View(member);
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
         }
         #endregion
@@ -401,7 +486,7 @@ namespace ZuHuanJingDemo2.Controllers
                 using MySqlConnection connection = new MySqlConnection(connectionString);
                 connection.Open();
 
-                string selectQuery = "SELECT * FROM `Member` WHERE `Member_Name` LIKE @Query OR `Member_Account` LIKE @Query OR `Member_Id` LIKE @Query ORDER BY " + sortField + " " + sortFun ;
+                string selectQuery = "SELECT * FROM `Member` WHERE `Member_Name` LIKE @Query OR `Member_Account` LIKE @Query OR `Member_Id` LIKE @Query ORDER BY " + sortField + " " + sortFun;
 
                 using MySqlCommand command = new MySqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@Query", $"%{query}%");

@@ -18,7 +18,7 @@
     var functions = _context.Function?.Where(f => functionIds.Contains(f.Function_Id)).ToList();
 }*@
 
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
     <div class="container-fluid">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -28,18 +28,21 @@
         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
             <ul class="navbar-nav flex-grow-1">
                 <li class="nav-item">
-                    <a class="nav-link text-dark" asp-area="" asp-controller="Members" asp-action="Index">
-                        Member
+                    <a class="nav-link text-dark fs-5" asp-area="" asp-controller="Members" asp-action="Index">
+                        <i class="fas fa-user"></i>
+                        會員
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark" asp-area="" asp-controller="Courses" asp-action="Index">
-                        Course
+                    <a class="nav-link text-dark fs-5" asp-area="" asp-controller="Courses" asp-action="Index">
+                        <i class="fas fa-book"></i>
+                        課程
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark" asp-area="" asp-controller="Licenses" asp-action="Index">
-                        License
+                    <a class="nav-link text-dark fs-5" asp-area="" asp-controller="Licenses" asp-action="Index">
+                        <i class="fas fa-id-card"></i>
+                        證照
                     </a>
                 </li>
             </ul>
@@ -51,7 +54,6 @@
                     <strong>@User.Identity.Name</strong><i class="bi bi-caret-down"></i>
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="homeDropdown">
-                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">Guest</a></li>
                     <li><form asp-action="Logout" asp-controller="Home"><button class="dropdown-item" type="submit"><small>Logout</small></button></form></li>
                 </ul>
             </div>

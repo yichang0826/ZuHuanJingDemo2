@@ -96,7 +96,7 @@ namespace ZuHuanJingDemo2.Controllers
                         new ClaimsPrincipal(claimsIdentity), authProperties);
             }
             catch (Exception) { return NotFound(); }
-            return RedirectToAction("Index", "Members");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]

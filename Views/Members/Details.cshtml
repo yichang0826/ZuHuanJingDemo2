@@ -50,16 +50,21 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Member_CreateDate)
         </dd>
+        <hr />
+        <dt class="col-12">
+            擁有的證照
+        </dt>
+        <dt class="col-2">編號</dt>
+        <dt class="col-4">名稱</dt>
+        <dt class="col-6">獲得日期</dt>
         @if (Model is not null && Model.Member_Licenses is not null)
         {
             @foreach (var item in Model.Member_Licenses)
             {
-                <dt class="col-sm-2">@item.License_Id</dt>
-                <dt class="col-sm-4">@item.License_Name</dt>
-                <dt class="col-sm-6">@item.License_CreateDate</dt>
-                <dd class="col-sm-10">@item.License_Introduction</dd>
+                <dd class="col-sm-2">@item.License_Id</dd>
+                <dd class="col-sm-4">@item.License_Name</dd>
+                <dd class="col-sm-6">@item.License_CreateDate</dd>
             }
         }
     </dl>
-    
 </div>

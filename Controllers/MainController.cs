@@ -101,7 +101,7 @@ namespace ZuHuanJingDemo2.Controllers
                         };
                         courses.Add(course);
                     }
-                    return PartialView("~/Views/Members/_CourseList.cshtml", courses);
+                    return PartialView("~/Views/Courses/_CourseList.cshtml", courses);
                 }
                 TempData["Text"] = sortField + "  Member Equals: " + sortField.Equals("Member");
                 return RedirectToAction("ErrorView", "Home");
