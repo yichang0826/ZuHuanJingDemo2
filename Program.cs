@@ -24,6 +24,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Home/Login";
         options.AccessDeniedPath = "/Home/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(10); // 设置Cookie过期时间为10分钟
+        options.SlidingExpiration = true; // 启用滑动过期时间
     });
 builder.Services.AddAuthenticationCore();
 #endregion

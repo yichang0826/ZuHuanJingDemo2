@@ -1,70 +1,156 @@
-﻿@model ZuHuanJingDemo2.Models.Member
-
+﻿@*@model ZuHuanJingDemo2.Models.Member
 @{
     ViewData["Title"] = "Details";
 }
-
-<h1>Details</h1>
-
+<h1>會員細節</h1>
 <div>
-    <h4>Member</h4>
-    <hr />
     <div>
-        <a asp-action="Edit" asp-route-id="@Model?.Member_Id">Edit</a> |
-        <a asp-action="Index">Back to List</a>
+        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model?.Member_Id">Edit</a>&ensp;
+        <a class="btn btn-info" asp-action="Index">Back to List</a>
     </div>
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Member_Name)
-        </dt>
-        <dd class="col-sm-10">
+    <hr />
+    <div class="row">
+
+        <div class="col-sm-10">
             @Html.DisplayFor(model => model.Member_Name)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Member_Account)
-        </dt>
-        <dd class="col-sm-10">
+        </div>
+
+        <div class="col-sm-10">
             @Html.DisplayFor(model => model.Member_Account)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Member_Password)
-        </dt>
-        <dd class="col-sm-10">
+        </div>
+
+        <div class="col-sm-10">
             @Html.DisplayFor(model => model.Member_Password)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Member_Email)
-        </dt>
-        <dd class="col-sm-10">
+        </div>
+
+        <div class="col-sm-10">
             @Html.DisplayFor(model => model.Member_Email)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Is_Baned)
-        </dt>
-        <dd class="col-sm-10">
+        </div>
+
+        <div class="col-sm-10">
             @Html.DisplayFor(model => model.Is_Baned)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Member_CreateDate)
-        </dt>
-        <dd class="col-sm-10">
+        </div>
+
+        <div class="col-sm-10">
             @Html.DisplayFor(model => model.Member_CreateDate)
-        </dd>
+        </div>
         <hr />
-        <dt class="col-12">
+        <div class="col-12">
             擁有的證照
-        </dt>
-        <dt class="col-2">編號</dt>
-        <dt class="col-4">名稱</dt>
-        <dt class="col-6">獲得日期</dt>
+        </div>
+        <div class="col-2">編號</div>
+        <div class="col-4">名稱</div>
+        <div class="col-6">獲得日期</div>
         @if (Model is not null && Model.Member_Licenses is not null)
         {
             @foreach (var item in Model.Member_Licenses)
             {
-                <dd class="col-sm-2">@item.License_Id</dd>
-                <dd class="col-sm-4">@item.License_Name</dd>
-                <dd class="col-sm-6">@item.License_CreateDate</dd>
+                <div class="col-sm-2">@item.License_Id</div>
+                <div class="col-sm-4">@item.License_Name</div>
+                <div class="col-sm-6">@item.License_CreateDate</div>
             }
         }
-    </dl>
+    </div>
 </div>
+*@
+@model ZuHuanJingDemo2.Models.Member
+@{
+    ViewData["Title"] = "Details";
+}
+<h1>會員細節</h1>
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex">
+            <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model?.Member_Id">編輯</a>&ensp;
+            <a class="btn btn-info" asp-action="Index">返回</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <h5 class="card-title"><strong>名稱</strong></h5>
+                <p class="card-text">@Html.DisplayFor(model => model.Member_Name)</p>
+            </div>
+            <div class="col-md-4">
+                <h5 class="card-title"><strong>帳號</strong></h5>
+                <p class="card-text">@Html.DisplayFor(model => model.Member_Account)</p>
+            </div>
+            <div class="col-md-4">
+                <h5 class="card-title"><strong>密碼</strong></h5>
+                <div class="input-group">
+                    <input id="password" type="password" class="form-control" value="@Model.Member_Password" disabled />
+                    <button id="togglePassword" class="btn btn-outline-secondary" type="button">顯示</button>
+                </div>
+            </div>
+
+
+
+            <div class="col-md-4">
+                <h5 class="card-title"><strong>郵箱</strong></h5>
+                <p class="card-text">@Html.DisplayFor(model => model.Member_Email)</p>
+            </div>
+            <div class="col-md-4">
+                <h5 class="card-title"><strong>是否封禁</strong></h5>
+                @if (Model.Is_Baned == 0)
+                {
+                    <p class="card-text">否</p>
+                }
+                else
+                {
+                    <p class="card-text">是</p>
+                }
+            </div>
+            <div class="col-md-4">
+                <h5 class="card-title"><strong>註冊日期</strong></h5>
+                <p class="card-text">@Html.DisplayFor(model => model.Member_CreateDate)</p>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-12">
+                <h5><strong>擁有的證照</strong></h5>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">編號</th>
+                            <th scope="col">名稱</th>
+                            <th scope="col">獲得日期</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model is not null && Model.Member_Licenses is not null)
+                        {
+                            @foreach (var item in Model.Member_Licenses)
+                            {
+                                <tr>
+                                    <td>@item.License_Id</td>
+                                    <td>@item.License_Name</td>
+                                    <td>@item.License_CreateDate</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#togglePassword').click(function () {
+                var passwordField = $('#password');
+                var toggleButton = $(this);
+
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    toggleButton.text('隱藏');
+                } else {
+                    passwordField.attr('type', 'password');
+                    toggleButton.text('顯示');
+                }
+            });
+        });
+    </script>
+}

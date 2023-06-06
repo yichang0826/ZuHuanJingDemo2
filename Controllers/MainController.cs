@@ -23,7 +23,7 @@ namespace ZuHuanJingDemo2.Controllers
             _configuration = configuration;
         }
 
-        public IActionResult Search(string? query, string sortField, string sortFun)
+        public IActionResult Search(string searchQuery, string sortField, string sortFun, string? sortDate)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace ZuHuanJingDemo2.Controllers
                     //selectQuery = "SELECT * FROM `Member` WHERE `Member_Name` LIKE @Query OR `Member_Account` LIKE @Query ORDER BY " + sortField + " " +sortFun;
 
                     using MySqlCommand command = new MySqlCommand(selectQuery, connection);
-                    command.Parameters.AddWithValue("@Query", $"%{query}%");
+                    command.Parameters.AddWithValue("@Query", $"%{searchQuery}%");
 
                     using MySqlDataReader reader = command.ExecuteReader();
                     while (reader.Read())
@@ -67,11 +67,24 @@ namespace ZuHuanJingDemo2.Controllers
                     }
                     return PartialView("~/Views/Members/_MemberList.cshtml", members);
                 }
-                else if (sortField.Contains("Course"))
+                else if (sortDate != null && sortField.Contains("Course"))
                 {
-                    selectQuery = "SELECT * FROM `Course` WHERE `Course_Name` LIKE @Query OR `Course_Teacher` LIKE @Query OR `Course_Id` LIKE @Query ORDER BY " + sortField + " " + sortFun;
+                    selectQuery = "SELECT * FROM `Course` WHERE (`Course_Name` LIKE @searchQuery OR `Course_Teacher` LIKE @searchQuery OR `Course_Id` LIKE @searchQuery) ";
+                    switch (sortDate)
+                    {
+                        case "all": break;
+                        case "before": selectQuery += " AND `Course_StartDate` > CURDATE() "; break;
+                        case "started": selectQuery += " AND `Course_StartDate` <= CURDATE() AND `Course_EndDate` >= CURDATE() "; break;
+                        case "ended": selectQuery += " AND `Course_EndDate` < CURDATE() "; break;
+                    }
+                    selectQuery += "ORDER BY " + sortField + " " + sortFun + ";";
+
+                    //TempData["Text"] = "  sortField: " + sortField + "  || SortFun: " + sortFun + "  || SortDate: " + sortDate + "  || selectQuery:  " + selectQuery;
+                    //return RedirectToAction("ErrorView", "Home");
+
                     using MySqlCommand command = new(selectQuery, connection);
-                    command.Parameters.AddWithValue("@Query", $"%{query}%");
+                    command.Parameters.AddWithValue("@searchQuery", $"%{searchQuery}%");
+
                     using MySqlDataReader reader = command.ExecuteReader();
                     while (reader.Read())
                     {
@@ -103,12 +116,12 @@ namespace ZuHuanJingDemo2.Controllers
                     }
                     return PartialView("~/Views/Courses/_CourseList.cshtml", courses);
                 }
-                TempData["Text"] = sortField + "  Member Equals: " + sortField.Equals("Member");
+                TempData["Text"] = "  sortField: " + sortField + "  || SortFun: " + sortFun + "  || SortDate: " + sortDate + "  || selectQuery:  " + selectQuery;
                 return RedirectToAction("ErrorView", "Home");
             }
             catch (Exception ex)
             {
-                TempData["Text"] = ex;
+                TempData["Text"] = ex.Message;
                 return RedirectToAction("ErrorView", "Home");
             }
         }

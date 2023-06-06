@@ -1,16 +1,14 @@
 ﻿@model IEnumerable<ZuHuanJingDemo2.Models.Member>
-
 @{
     ViewData["Title"] = "Index";
 }
-
 <h1>會員列表</h1>
 <hr />
 <div class="row">
     <div class="col-12">
-        <a asp-action="Create" class="btn btn-secondary">新建</a> |
-        <input name="search" value="" style="width:50%;" placeholder="可搜尋 : 編號、名稱、帳號" /> |
-        <button id="searchbut" class="btn btn-info">搜尋</button>
+        <a asp-action="Create" class="btn btn-secondary">新建</a>&ensp;
+        <input name="search" value="" style="width:50%;" placeholder="可搜尋 : 編號、名稱、帳號" />&ensp;
+        <button id="searchbut" class="btn btn-info">搜尋</button>&ensp;
         <button id="clearbut" class="btn btn-primary">清空</button>
     </div>
 </div>
@@ -45,17 +43,11 @@
 <table class="table" id="membersTable">
     <thead>
         <tr>
-            @*<th>@Html.DisplayNameFor(model => model.Member_Id)</th>
+            <th>@Html.DisplayNameFor(model => model.Member_Id)</th>
             <th>@Html.DisplayNameFor(model => model.Member_Name)</th>
             <th>@Html.DisplayNameFor(model => model.Member_Account)</th>
             <th>@Html.DisplayNameFor(model => model.Member_Email)</th>
-            <th>@Html.DisplayNameFor(model => model.Is_Baned)</th>
-            <th>@Html.DisplayNameFor(model => model.Member_CreateDate)</th>*@
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.Member_CreateDate)</th>
             <th></th>
         </tr>
     </thead>
@@ -91,63 +83,27 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
+            searching()
+
             //清空按鈕點擊事件
             $("#clearbut").click(function () {
-                showLoading(); // 显示加载状态
                 $("input[name='search']").val('');
-                var searchQuery = $("input[name='search']").val();
-                var sortField = $("input[name='sort']:checked").val();
-                var sortFun = $("input[name='sortfun']:checked").val();
-                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
-
-                $.get(url, function (data) {
-                    $("#membersTable tbody").html(data);
-                })
-                    .done(function () {
-                        hideLoading(); // 请求完成后隐藏加载状态
-                    })
-                    .fail(function () {
-                        hideLoading(); // 请求失败时隐藏加载状态
-                    });
+                searching()
             });
             // 搜尋按鈕點擊事件
             $("#searchbut").click(function () {
-                showLoading(); // 显示加载状态
-                var searchQuery = $("input[name='search']").val();
-                var sortField = $("input[name='sort']:checked").val();
-                var sortFun = $("input[name='sortfun']:checked").val();
-                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
-
-                $.get(url, function (data) {
-                    $("#membersTable tbody").html(data);
-                })
-                    .done(function () {
-                        hideLoading(); // 请求完成后隐藏加载状态
-                    })
-                    .fail(function () {
-                        hideLoading(); // 请求失败时隐藏加载状态
-                    });
+                searching()
             });
             // 排序选项改变事件
             $("input[name='sort']").change(function () {
-                showLoading(); // 显示加载状态
-                var searchQuery = $("input[name='search']").val();
-                var sortField = $("input[name='sort']:checked").val();
-                var sortFun = $("input[name='sortfun']:checked").val();
-                var url = `/Main/Search?query=${searchQuery}&sortField=${sortField}&sortFun=${sortFun}`;
-
-                $.get(url, function (data) {
-                    $("#membersTable tbody").html(data);
-                })
-                    .done(function () {
-                        hideLoading(); // 请求完成后隐藏加载状态
-                    })
-                    .fail(function () {
-                        hideLoading(); // 请求失败时隐藏加载状态
-                    });
+                searching()
             });
             // 排序选项改变事件
             $("input[name='sortfun']").change(function () {
+                searching()
+            });
+
+            function searching() {
                 showLoading(); // 显示加载状态
                 var searchQuery = $("input[name='search']").val();
                 var sortField = $("input[name='sort']:checked").val();
@@ -163,7 +119,7 @@
                     .fail(function () {
                         hideLoading(); // 请求失败时隐藏加载状态
                     });
-            });
+            }
 
             function showLoading() {
                 // 显示加载状态，覆盖整个视窗

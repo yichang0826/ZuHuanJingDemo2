@@ -58,8 +58,8 @@ namespace ZuHuanJingDemo2.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View();
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
             return View(licenses);
         }

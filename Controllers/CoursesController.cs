@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ZuHuanJingDemo2.Data;
 using ZuHuanJingDemo2.Models;
+using System.Data;
 
 namespace ZuHuanJingDemo2.Controllers
 {
@@ -25,53 +26,7 @@ namespace ZuHuanJingDemo2.Controllers
         #region ========================================================= Index
         public IActionResult Index()
         {
-            string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
-            List<Course> courses = new();
-            try
-            {
-                using MySqlConnection connection = new(connectionString);
-                connection.Open();
-                string selectQuery = "SELECT * FROM `course`";
-                using MySqlCommand command = new(selectQuery, connection);
-                using MySqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    if (!reader.IsDBNull(0) && !reader.IsDBNull(1))
-                    {
-                        int courseid = reader.GetInt32("Course_Id");
-                        string name = reader.GetString("Course_Name");
-                        string teacher = reader.GetString("Course_Teacher");
-                        string introduction = reader.GetString("Course_Introduction");
-                        int maxcount = reader.GetInt32("Course_MaxCount");
-                        int sumcount = reader.GetInt32("Course_SumCount");
-                        DateTime starttime = reader.GetDateTime("Course_StartDate");
-                        DateTime enddate = reader.GetDateTime("Course_EndDate");
-                        DateTime createdate = reader.GetDateTime("Course_CreateDate");
-                        int isactive = reader.GetInt32("Course_IsActive");
-                        Course course = new()
-                        {
-                            Course_Id = courseid,
-                            Course_Name = name,
-                            Course_Teacher = teacher,
-                            Course_Introduction = introduction,
-                            Course_MaxCount = maxcount,
-                            Course_SumCount = sumcount,
-                            Course_StartDate = starttime,
-                            Course_EndDate = enddate,
-                            Course_CreateDate = createdate,
-                            Course_IsActive = isactive
-                        };
-                        courses.Add(course);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View();
-            }
-
-            return View(courses);
+            return View();
         }
         #endregion
 
@@ -136,20 +91,19 @@ namespace ZuHuanJingDemo2.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ViewBag.Text = $"出現錯誤2：{ex.Message}";
-                    return View();
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
                 }
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤1：{ex.Message}";
-                return View();
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
         }
         #endregion
 
-
-        // GET: Courses/Create
+        #region ========================================================= Create
         public IActionResult Create()
         {
             return View();
@@ -160,47 +114,59 @@ namespace ZuHuanJingDemo2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Course_Name,Course_Teacher,Course_Introduction,Course_MaxCount,Course_SumCount,Course_StartDate,Course_EndDate,Course_CreateDate,Course_IsActive")] Course course)
+        public IActionResult Create([Bind("Course_Name, Course_Teacher, Course_Introduction, Course_MaxCount, Course_SumCount, Course_StartDate, Course_EndDate, Course_CreateDate, Course_IsActive")] Course course, string CourseIntroduction)
         {
-            if (ModelState.IsValid)
+            int maxid = 0;
+            try
             {
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                using MySqlConnection connection = new MySqlConnection(connectionString);
+                connection.Open();
 
-                try
+                string selectQuery = "SELECT MAX(`Course_Id`) AS MaxId FROM `course`";
+                using MySqlCommand selectcommand = new MySqlCommand(selectQuery, connection);
+                using MySqlDataReader reader = selectcommand.ExecuteReader();
+                if (reader.Read())
                 {
-                    using MySqlConnection connection = new MySqlConnection(connectionString);
-                    await connection.OpenAsync();
-
-                    string insertQuery = "INSERT INTO `Course` (Course_Name, Course_Teacher, Course_Introduction, Course_MaxCount, Course_SumCount, Course_StartDate, Course_EndDate, Course_CreateDate, Course_IsActive) " +
-                                         "VALUES (@Course_Name, @Course_Teacher, @Course_Introduction, @Course_MaxCount, @Course_SumCount, @Course_StartDate, @Course_EndDate, @Course_CreateDate, @Course_IsActive)";
-
-                    using MySqlCommand command = new MySqlCommand(insertQuery, connection);
-                    command.Parameters.AddWithValue("@Course_Name", course.Course_Name);
-                    command.Parameters.AddWithValue("@Course_Teacher", course.Course_Teacher);
-                    command.Parameters.AddWithValue("@Course_Introduction", course.Course_Introduction);
-                    command.Parameters.AddWithValue("@Course_MaxCount", course.Course_MaxCount);
-                    command.Parameters.AddWithValue("@Course_SumCount", course.Course_SumCount);
-                    command.Parameters.AddWithValue("@Course_StartDate", course.Course_StartDate);
-                    command.Parameters.AddWithValue("@Course_EndDate", course.Course_EndDate);
-                    command.Parameters.AddWithValue("@Course_CreateDate", DateTime.Now);
-                    command.Parameters.AddWithValue("@Course_IsActive", course.Course_IsActive);
-
-                    await command.ExecuteNonQueryAsync();
+                    if (!reader.IsDBNull("MaxId"))
+                    {
+                        maxid = reader.GetInt32("MaxId");
+                    }
                 }
-                catch (Exception)
+                reader.Close();
+                if (maxid != 0)
                 {
-                    // Handle exception
-                    return View(course);
+                    maxid++;
                 }
 
-                return RedirectToAction(nameof(Index));
+                string insertQuery = "INSERT INTO `Course` (Course_Id, Course_Name, Course_Teacher, Course_Introduction, Course_MaxCount, Course_SumCount, Course_StartDate, Course_EndDate, Course_CreateDate, Course_IsActive) " +
+                                     "VALUES (@Course_Id, @Course_Name, @Course_Teacher, @Course_Introduction, @Course_MaxCount, @Course_SumCount, @Course_StartDate, @Course_EndDate, @Course_CreateDate, @Course_IsActive)";
+
+                using MySqlCommand command = new MySqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@Course_Id", maxid);
+                command.Parameters.AddWithValue("@Course_Name", course.Course_Name);
+                command.Parameters.AddWithValue("@Course_Teacher", course.Course_Teacher);
+                command.Parameters.AddWithValue("@Course_Introduction", course.Course_Introduction ?? "Fuck you");
+                command.Parameters.AddWithValue("@Course_MaxCount", course.Course_MaxCount);
+                command.Parameters.AddWithValue("@Course_SumCount", course.Course_SumCount);
+                command.Parameters.AddWithValue("@Course_StartDate", course.Course_StartDate);
+                command.Parameters.AddWithValue("@Course_EndDate", course.Course_EndDate);
+                command.Parameters.AddWithValue("@Course_CreateDate", DateTime.Now);
+                command.Parameters.AddWithValue("@Course_IsActive", course.Course_IsActive);
+
+                command.ExecuteNonQuery();
+
+                return RedirectToAction("Index");
             }
-
-            return View(course);
+            catch (Exception ex)
+            {
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
+            }
         }
+        #endregion
 
-
-        // GET: Courses/Edit/5
+        #region ========================================================= Edit
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Course == null)
@@ -250,101 +216,75 @@ namespace ZuHuanJingDemo2.Controllers
             }
             return View(course);
         }
+        #endregion
 
-        // GET: Courses/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        #region ========================================================= Delete
+        public async Task<IActionResult> DeleteConfirm(int? id)
         {
-            if (id == null || _context.Course == null)
-            {
-                return NotFound();
-            }
-
-            var course = await _context.Course
-                .FirstOrDefaultAsync(m => m.Course_Id == id);
-            if (course == null)
-            {
-                return NotFound();
-            }
-
-            return View(course);
-        }
-
-        // POST: Courses/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            if (_context.Course == null)
-            {
-                return Problem("Entity set 'ZuHuanJingDemo2Context.Course'  is null.");
-            }
-            var course = await _context.Course.FindAsync(id);
-            if (course != null)
-            {
-                _context.Course.Remove(course);
-            }
-            
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        public IActionResult Search(string? query, string sortField, string sortFun)
-        {
+            if (id == null) { return NotFound(); }
             try
             {
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
-                List<Course> courses = new();
-
-                using MySqlConnection connection = new MySqlConnection(connectionString);
+                using MySqlConnection connection = new(connectionString);
                 connection.Open();
 
-                string selectQuery = "SELECT * FROM `Course` WHERE `Course_Name` LIKE @Query OR `Course_Teacher` LIKE @Query OR `Course_Id` LIKE @Query ORDER BY " + sortField + " " + sortFun;
-
-                using MySqlCommand command = new(selectQuery, connection);
-                command.Parameters.AddWithValue("@Query", $"%{query}%");
-
-                using MySqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    int courseId = reader.GetInt32("Course_Id");
-                    string courseName = reader.GetString("Course_Name");
-                    string courseTeacher = reader.GetString("Course_Teacher");
-                    string courseIntroduction = reader.GetString("Course_Introduction");
-                    int courseMaxCount = reader.GetInt32("Course_MaxCount");
-                    int courseSumCount = reader.GetInt32("Course_SumCount");
-                    DateTime courseStartDate = reader.GetDateTime("Course_StartDate");
-                    DateTime courseEndDate = reader.GetDateTime("Course_EndDate");
-                    DateTime createDate = reader.GetDateTime("Course_CreateDate");
-                    int courseIsActive = reader.GetInt32("Course_IsActive");
-                    
-
-                    Course course = new Course()
-                    {
-                        Course_Id = courseId,
-                        Course_Name = courseName,
-                        Course_Teacher = courseTeacher,
-                        Course_MaxCount = courseMaxCount,
-                        Course_SumCount = courseSumCount,
-                        Course_StartDate = courseStartDate,
-                        Course_EndDate = courseEndDate,
-                        Course_CreateDate = createDate,
-                        Course_IsActive = courseIsActive
-                        
-                    };
-                    courses.Add(course);
-                }
-                return PartialView("_CourseList", courses);
+                // 删除 Course 数据
+                string deleteMemberLicenseQuery = "DELETE FROM `Course` WHERE `Course_Id` = @CourseId";
+                using MySqlCommand deleteMemberLicenseCommand = new(deleteMemberLicenseQuery, connection);
+                deleteMemberLicenseCommand.Parameters.AddWithValue("@CourseId", id);
+                await deleteMemberLicenseCommand.ExecuteNonQueryAsync();
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View();
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
+            return RedirectToAction("Index");
         }
+
+
+
+        //public async Task<IActionResult> Delete(int? id)
+        //{
+        //    if (id == null || _context.Course == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    var course = await _context.Course
+        //        .FirstOrDefaultAsync(m => m.Course_Id == id);
+        //    if (course == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return View(course);
+        //}
+
+        //// POST: Courses/Delete/5
+        //[HttpPost, ActionName("Delete")]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> DeleteConfirmed(int id)
+        //{
+        //    if (_context.Course == null)
+        //    {
+        //        return Problem("Entity set 'ZuHuanJingDemo2Context.Course'  is null.");
+        //    }
+        //    var course = await _context.Course.FindAsync(id);
+        //    if (course != null)
+        //    {
+        //        _context.Course.Remove(course);
+        //    }
+
+        //    await _context.SaveChangesAsync();
+        //    return RedirectToAction(nameof(Index));
+        //}
+        #endregion
+
 
         private bool CourseExists(int id)
         {
-          return (_context.Course?.Any(e => e.Course_Id == id)).GetValueOrDefault();
+            return (_context.Course?.Any(e => e.Course_Id == id)).GetValueOrDefault();
         }
     }
 }

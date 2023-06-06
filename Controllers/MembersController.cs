@@ -11,6 +11,7 @@ using ZuHuanJingDemo2.Models;
 using Google.Protobuf.WellKnownTypes;
 using ZuHuanJingDemo2.Models.ViewModel;
 using System.Data;
+using System.ComponentModel;
 
 namespace ZuHuanJingDemo2.Controllers
 {
@@ -28,46 +29,7 @@ namespace ZuHuanJingDemo2.Controllers
         #region ======================================================================== Index
         public IActionResult Index()
         {
-            string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
-            List<Member> users = new();
-            try
-            {
-                using MySqlConnection connection = new(connectionString);
-                connection.Open();
-                string selectQuery = "SELECT * FROM `member`";
-                using MySqlCommand command = new(selectQuery, connection);
-                using MySqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    if (!reader.IsDBNull(0) && !reader.IsDBNull(1))
-                    {
-                        int id = reader.GetInt32("Member_Id");
-                        string name = reader.GetString("Member_Name");
-                        string account = reader.GetString("Member_Account");
-                        string password = reader.GetString("Member_Password");
-                        string email = reader.GetString("Member_Email");
-                        int isbaned = reader.GetInt32("Is_Baned");
-                        DateTime createdate = reader.GetDateTime("Member_CreateDate");
-                        Member user = new()
-                        {
-                            Member_Id = id,
-                            Member_Name = name,
-                            Member_Account = account,
-                            Member_Password = password,
-                            Member_Email = email,
-                            Is_Baned = isbaned,
-                            Member_CreateDate = createdate
-                        };
-                        users.Add(user);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View();
-            }
-            return View(users);
+            return View();
         }
 
         //[Route("[controller]")]
@@ -163,7 +125,7 @@ namespace ZuHuanJingDemo2.Controllers
                                 Member_Email = memberEmail,
                                 Is_Baned = isBaned,
                                 Member_CreateDate = createDate,
-                                Member_Licenses = new List<License>()
+                                Member_Licenses = new()
                             };
                         }
 
@@ -172,14 +134,14 @@ namespace ZuHuanJingDemo2.Controllers
                             int licenseId = reader.GetInt32("License_Id");
                             string licenseName = reader.GetString("License_Name");
                             string licenseIntroduction = reader.GetString("License_Introduction");
-                            DateTime licenseCreateDate = reader.GetDateTime("CreatedDate");
+                            DateTime mlicenseCreateDate = reader.GetDateTime("CreatedDate");
 
-                            License license = new()
+                            Models.License license = new()
                             {
                                 License_Id = licenseId,
                                 License_Name = licenseName,
                                 License_Introduction = licenseIntroduction,
-                                License_CreateDate = licenseCreateDate
+                                License_CreateDate = mlicenseCreateDate
                             };
 
                             member.Member_Licenses.Add(license);
@@ -194,14 +156,14 @@ namespace ZuHuanJingDemo2.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ViewBag.Text = $"出現錯誤2：{ex.Message}";
-                    return View();
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
                 }
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤1：{ex.Message}";
-                return View();
+                TempData["Text"] = $"出現錯誤1：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
         }
         #endregion
@@ -209,13 +171,41 @@ namespace ZuHuanJingDemo2.Controllers
         #region ======================================================================== Create
         public IActionResult Create()
         {
-            List<License> licenseslist = new List<License>();
+            List<Models.License> licenseslist = new();
             string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
             try
             {
+                #region
+                //using MySqlConnection connection = new(connectionString);
+                //connection.Open();
+                //string selectQuery = "SELECT * FROM `license` WHERE `License_IsActive` = 1";
+                //using MySqlCommand command = new(selectQuery, connection);
+                //using MySqlDataReader reader = command.ExecuteReader();
+                //while (reader.Read())
+                //{
+                //    if (!reader.IsDBNull(0) && !reader.IsDBNull(1))
+                //    {
+                //        int id = reader.GetInt32("License_Id");
+                //        string name = reader.GetString("License_Name");
+                //        string introduction = reader.GetString("License_Introduction");
+                //        DateTime createdate = reader.GetDateTime("License_CreateDate");
+                //        int isactive = reader.GetInt32("License_IsActive");
+
+                //        License license = new License()
+                //        {
+                //            License_Id = id,
+                //            License_Name = name,
+                //            License_Introduction = introduction,
+                //            License_IsActive = isactive == 1,
+                //            License_CreateDate = createdate
+                //        };
+                //        licenseslist.Add(license);
+                //    }
+                //}
+                #endregion
                 using MySqlConnection connection = new(connectionString);
                 connection.Open();
-                string selectQuery = "SELECT * FROM `license` WHERE `License_IsActive` = 1";
+                string selectQuery = "SELECT `License_Id`,`License_Name` FROM `license` WHERE `License_IsActive` = 1";
                 using MySqlCommand command = new(selectQuery, connection);
                 using MySqlDataReader reader = command.ExecuteReader();
                 while (reader.Read())
@@ -224,17 +214,11 @@ namespace ZuHuanJingDemo2.Controllers
                     {
                         int id = reader.GetInt32("License_Id");
                         string name = reader.GetString("License_Name");
-                        string introduction = reader.GetString("License_Introduction");
-                        DateTime createdate = reader.GetDateTime("License_CreateDate");
-                        int isactive = reader.GetInt32("License_IsActive");
 
-                        License license = new License()
+                        Models.License license = new()
                         {
                             License_Id = id,
-                            License_Name = name,
-                            License_Introduction = introduction,
-                            License_IsActive = isactive == 1,
-                            License_CreateDate = createdate
+                            License_Name = name
                         };
                         licenseslist.Add(license);
                     }
@@ -242,8 +226,8 @@ namespace ZuHuanJingDemo2.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View("ErrorView", "Home");
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
             ViewData["licenseslist"] = licenseslist;
             return View();
@@ -330,9 +314,10 @@ namespace ZuHuanJingDemo2.Controllers
         #endregion
 
         #region ======================================================================== Edit
-        public IActionResult Edit(int? id)
+        public IActionResult Edit(int? Id)
         {
-            if (id == null)
+            MemberEditViewModel model = new MemberEditViewModel();
+            if (Id == null)
             {
                 return NotFound();
             }
@@ -343,43 +328,155 @@ namespace ZuHuanJingDemo2.Controllers
                 using MySqlConnection connection = new MySqlConnection(connectionString);
                 connection.Open();
 
-                string selectQuery = "SELECT * FROM `member` WHERE `Member_Id` = @MemberId";
-                using MySqlCommand command = new MySqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@MemberId", id);
-
-                using MySqlDataReader reader = command.ExecuteReader();
-                if (reader.Read())
+                #region reading the license list
+                string selectQuery = "SELECT * FROM `license`";
+                using MySqlCommand selectcommand = new MySqlCommand(selectQuery, connection);
+                using MySqlDataReader reader = selectcommand.ExecuteReader();
+                model.licenses = new();
+                while (reader.Read())
                 {
-                    int memberId = reader.GetInt32("Member_Id");
-                    string memberName = reader.GetString("Member_Name");
-                    string memberAccount = reader.GetString("Member_Account");
-                    string memberEmail = reader.GetString("Member_Email");
-                    int isBaned = reader.GetInt32("Is_Baned");
-                    DateTime createDate = reader.GetDateTime("Member_CreateDate");
-
-                    Member member = new Member()
+                    int id = reader.GetInt32("License_Id");
+                    string name = reader.GetString("License_Name");
+                    string introduction = reader.GetString("License_Introduction");
+                    DateTime createdate = reader.GetDateTime("License_CreateDate");
+                    int isactive = reader.GetInt32("License_IsActive");
+                    Models.License license = new()
                     {
-                        Member_Id = memberId,
-                        Member_Name = memberName,
-                        Member_Account = memberAccount,
-                        Member_Email = memberEmail,
-                        Is_Baned = isBaned,
-                        Member_CreateDate = createDate
+                        License_Id = id,
+                        License_Name = name,
+                        License_Introduction = introduction,
+                        License_IsActive = isactive == 1,
+                        License_CreateDate = createdate
                     };
+                    model.licenses.Add(license);
+                }
+                reader.Close();
+                #endregion
+                #region reading the member file
+                //selectQuery = "SELECT m.*, ml.CreatedDate, l.* " +
+                //              "FROM `Member` m " +
+                //              "LEFT JOIN `MemberLicense` ml ON m.Member_Id = ml.MemberId " +
+                //              "LEFT JOIN `License` l ON ml.LicenseId = l.License_Id " +
+                //              "WHERE m.Member_Id = @MemberId";
+                //using MySqlCommand command = new MySqlCommand(selectQuery, connection);
+                //command.Parameters.AddWithValue("@MemberId", Id);
+                //using MySqlDataReader reader1 = command.ExecuteReader();
+                //if (reader1.Read())
+                //{
+                //    int memberId = reader1.GetInt32("Member_Id");
+                //    string memberName = reader1.GetString("Member_Name");
+                //    string memberAccount = reader1.GetString("Member_Account");
+                //    string memberEmail = reader1.GetString("Member_Email");
+                //    int isBaned = reader1.GetInt32("Is_Baned");
+                //    DateTime createDate = reader1.GetDateTime("Member_CreateDate");
 
-                    return View(member);
-                }
-                else
+                //    Member member = new Member()
+                //    {
+                //        Member_Id = memberId,
+                //        Member_Name = memberName,
+                //        Member_Account = memberAccount,
+                //        Member_Email = memberEmail,
+                //        Is_Baned = isBaned,
+                //        Member_CreateDate = createDate,
+                //        Member_Licenses = new()
+                //    };
+                //    if (!reader1.IsDBNull(reader1.GetOrdinal("License_Id")))
+                //    {
+                //        int licenseId = reader1.GetInt32("License_Id");
+                //        string licenseName = reader1.GetString("License_Name");
+                //        string licenseIntroduction = reader1.GetString("License_Introduction");
+                //        DateTime mlicenseCreateDate = reader1.GetDateTime("CreatedDate");
+
+                //        Models.License license = new()
+                //        {
+                //            License_Id = licenseId,
+                //            License_Name = licenseName,
+                //            License_Introduction = licenseIntroduction,
+                //            License_CreateDate = mlicenseCreateDate
+                //        };
+                //        member.Member_Licenses.Add(license);
+                //    }
+                //    model.member = member;
+                //    return View(model);
+                //}
+                //else
+                //{
+                //    return NotFound();
+                //}
+                selectQuery = "SELECT m.*, ml.CreatedDate, l.* " +
+                             "FROM `Member` m " +
+                             "LEFT JOIN `MemberLicense` ml ON m.Member_Id = ml.MemberId " +
+                             "LEFT JOIN `License` l ON ml.LicenseId = l.License_Id " +
+                             "WHERE m.Member_Id = @MemberId";
+
+                using MySqlCommand command = new(selectQuery, connection);
+                command.Parameters.AddWithValue("@MemberId", Id);
+
+                try
                 {
-                    return NotFound();
+                    using MySqlDataReader reader1 = command.ExecuteReader();
+                    Member? member = null;
+                    while (reader1.Read())
+                    {
+                        if (member == null)
+                        {
+                            int memberId = reader1.GetInt32("Member_Id");
+                            string memberName = reader1.GetString("Member_Name");
+                            string memberAccount = reader1.GetString("Member_Account");
+                            string memberPassword = reader1.GetString("Member_Password");
+                            string memberEmail = reader1.GetString("Member_Email");
+                            int isBaned = reader1.GetInt32("Is_Baned");
+                            DateTime createDate = reader1.GetDateTime("Member_CreateDate");
+
+                            member = new Member()
+                            {
+                                Member_Id = memberId,
+                                Member_Name = memberName,
+                                Member_Account = memberAccount,
+                                Member_Password = memberPassword,
+                                Member_Email = memberEmail,
+                                Is_Baned = isBaned,
+                                Member_CreateDate = createDate,
+                                Member_Licenses = new()
+                            };
+                        }
+                        if (!reader1.IsDBNull(reader1.GetOrdinal("License_Id")))
+                        {
+                            int licenseId = reader1.GetInt32("License_Id");
+                            string licenseName = reader1.GetString("License_Name");
+                            string licenseIntroduction = reader1.GetString("License_Introduction");
+                            DateTime mlicenseCreateDate = reader1.GetDateTime("CreatedDate");
+                            Models.License license = new()
+                            {
+                                License_Id = licenseId,
+                                License_Name = licenseName,
+                                License_Introduction = licenseIntroduction,
+                                License_CreateDate = mlicenseCreateDate
+                            };
+                            member.Member_Licenses.Add(license);
+                        }
+                        model.member = member;
+                    }
+                    if (member == null)
+                    {
+                        return NotFound();
+                    }
+                    return View(model);
                 }
+                catch (Exception ex)
+                {
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
+                }
+                #endregion
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View();
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -413,15 +510,15 @@ namespace ZuHuanJingDemo2.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ViewBag.Text = $"出現錯誤：{ex.Message}";
-                    return View(member);
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
                 }
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View(member);
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
         }
         #endregion
@@ -451,8 +548,8 @@ namespace ZuHuanJingDemo2.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return RedirectToAction("Index");
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
             return RedirectToAction("Index");
         }

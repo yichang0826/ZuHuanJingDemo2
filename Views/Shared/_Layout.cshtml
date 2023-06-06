@@ -14,18 +14,13 @@
     <script type="text/javascript" src="jquery.jstree.js"></script>
 </head>
 <body>
-    @if(User.Identity?.Name == "admin")
+    @if (User.Identity?.Name == "admin")
     {
         @await Component.InvokeAsync("AdminTopMenu")
     }
     else
     {
         @await Component.InvokeAsync("TopMenu")
-    }
-
-    @if(ViewBag.Text != null)
-    {
-        <p class="alert">@ViewBag.Text</p>
     }
     <div class="container">
         <main role="main">
