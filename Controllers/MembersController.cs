@@ -353,56 +353,6 @@ namespace ZuHuanJingDemo2.Controllers
                 reader.Close();
                 #endregion
                 #region reading the member file
-                //selectQuery = "SELECT m.*, ml.CreatedDate, l.* " +
-                //              "FROM `Member` m " +
-                //              "LEFT JOIN `MemberLicense` ml ON m.Member_Id = ml.MemberId " +
-                //              "LEFT JOIN `License` l ON ml.LicenseId = l.License_Id " +
-                //              "WHERE m.Member_Id = @MemberId";
-                //using MySqlCommand command = new MySqlCommand(selectQuery, connection);
-                //command.Parameters.AddWithValue("@MemberId", Id);
-                //using MySqlDataReader reader1 = command.ExecuteReader();
-                //if (reader1.Read())
-                //{
-                //    int memberId = reader1.GetInt32("Member_Id");
-                //    string memberName = reader1.GetString("Member_Name");
-                //    string memberAccount = reader1.GetString("Member_Account");
-                //    string memberEmail = reader1.GetString("Member_Email");
-                //    int isBaned = reader1.GetInt32("Is_Baned");
-                //    DateTime createDate = reader1.GetDateTime("Member_CreateDate");
-
-                //    Member member = new Member()
-                //    {
-                //        Member_Id = memberId,
-                //        Member_Name = memberName,
-                //        Member_Account = memberAccount,
-                //        Member_Email = memberEmail,
-                //        Is_Baned = isBaned,
-                //        Member_CreateDate = createDate,
-                //        Member_Licenses = new()
-                //    };
-                //    if (!reader1.IsDBNull(reader1.GetOrdinal("License_Id")))
-                //    {
-                //        int licenseId = reader1.GetInt32("License_Id");
-                //        string licenseName = reader1.GetString("License_Name");
-                //        string licenseIntroduction = reader1.GetString("License_Introduction");
-                //        DateTime mlicenseCreateDate = reader1.GetDateTime("CreatedDate");
-
-                //        Models.License license = new()
-                //        {
-                //            License_Id = licenseId,
-                //            License_Name = licenseName,
-                //            License_Introduction = licenseIntroduction,
-                //            License_CreateDate = mlicenseCreateDate
-                //        };
-                //        member.Member_Licenses.Add(license);
-                //    }
-                //    model.member = member;
-                //    return View(model);
-                //}
-                //else
-                //{
-                //    return NotFound();
-                //}
                 selectQuery = "SELECT m.*, ml.CreatedDate, l.* " +
                              "FROM `Member` m " +
                              "LEFT JOIN `MemberLicense` ml ON m.Member_Id = ml.MemberId " +
@@ -480,37 +430,62 @@ namespace ZuHuanJingDemo2.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Member_Id,Member_Name,Member_Account,Member_Email,Is_Baned,Member_CreateDate")] Member member)
+        public IActionResult Edit(int id, [Bind("Member_Id,Member_Name,Member_Account,Member_Email,Is_Baned,Member_CreateDate")] Member member, int[] selectedLicenses)
         {
             if (id != member.Member_Id)
             {
-                return NotFound();
+                TempData["Text"] = $"出現錯誤：{id} != {member.Member_Id}";
+                return View("~/Views/Home/ErrorView.cshtml");
             }
 
             try
             {
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                List<int> existingLicenses = new();
                 try
                 {
                     using MySqlConnection connection = new MySqlConnection(connectionString);
                     connection.Open();
 
-                    string updateQuery = "UPDATE `member` SET `Member_Name` = @MemberName, `Member_Account` = @MemberAccount, `Member_Email` = @MemberEmail, " +
-                                         "`Is_Baned` = @IsBaned, `Member_CreateDate` = @MemberCreateDate WHERE `Member_Id` = @MemberId";
+                    string selectLicensesQuery = "SELECT `LicenseId` FROM `memberlicense` WHERE `MemberId` = @MemberId";
+                    using MySqlCommand selectLicensesCommand = new MySqlCommand(selectLicensesQuery, connection);
+                    selectLicensesCommand.Parameters.AddWithValue("@MemberId", id);
+                    using MySqlDataReader licensesReader = selectLicensesCommand.ExecuteReader();
+                    while (licensesReader.Read())
+                    {
+                        int licenseId = licensesReader.GetInt32("LicenseId");
+                        existingLicenses.Add(licenseId);
+                    }
+                    licensesReader.Close();
 
-                    using MySqlCommand command = new(updateQuery, connection);
-                    command.Parameters.AddWithValue("@MemberName", member.Member_Name);
-                    command.Parameters.AddWithValue("@MemberAccount", member.Member_Account);
-                    command.Parameters.AddWithValue("@MemberEmail", member.Member_Email);
-                    command.Parameters.AddWithValue("@IsBaned", member.Is_Baned);
-                    command.Parameters.AddWithValue("@MemberCreateDate", member.Member_CreateDate);
-                    command.Parameters.AddWithValue("@MemberId", id);
+                    List<int> licensesToDelete = existingLicenses.Except(selectedLicenses).ToList();
+                    List<int> licensesToAdd = selectedLicenses.Except(existingLicenses).ToList();
 
-                    await command.ExecuteNonQueryAsync();
+                    // 删除已取消选择的许可证
+                    foreach (int licenseId in licensesToDelete)
+                    {
+                        string deleteLicenseQuery = "DELETE FROM `memberlicense` WHERE (`MemberId` = @MemberId AND `LicenseId` = @LicenseId)";
+                        using MySqlCommand deleteLicenseCommand = new MySqlCommand(deleteLicenseQuery, connection);
+                        deleteLicenseCommand.Parameters.AddWithValue("@MemberId", id);
+                        deleteLicenseCommand.Parameters.AddWithValue("@LicenseId", licenseId);
+                        deleteLicenseCommand.ExecuteNonQuery();
+                    }
+
+                    // 添加新选择的许可证
+                    foreach (int licenseId in licensesToAdd)
+                    {
+                        string insertLicenseQuery = "INSERT INTO `memberlicense` (MemberId, LicenseId, CreatedDate) VALUES (@MemberId, @LicenseId, @CreatedDate)";
+                        using MySqlCommand insertLicenseCommand = new MySqlCommand(insertLicenseQuery, connection);
+                        insertLicenseCommand.Parameters.AddWithValue("@MemberId", id);
+                        insertLicenseCommand.Parameters.AddWithValue("@LicenseId", licenseId);
+                        insertLicenseCommand.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                        insertLicenseCommand.ExecuteNonQuery();
+                    }
                 }
                 catch (Exception ex)
                 {
-                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    TempData["Text"] = id + " " + ex;
+                    //TempData["Text"] = $"出現錯誤：{ex.Message}";
                     return View("~/Views/Home/ErrorView.cshtml");
                 }
                 return RedirectToAction(nameof(Index));

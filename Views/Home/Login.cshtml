@@ -1,26 +1,229 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "Login";
 }
-
-<h1>Login</h1>
-
-<form asp-action="Login">
-    <div class="row">
-        <div action="col-sm-2">
-            請輸入帳號:
-        </div>
-        <div action="col-sm-6">
-            <input name="username" id="username" required />
-        </div>
-        <div action="col-sm-2">
-            請輸入密碼:
-        </div>
-        <div action="col-sm-6">
-            <input name="password" id="password" type="password" required />
-        </div>
-        <div action="col-sm-2">
-            <p><br /><input type="submit" class="btn btn-primary" value="Login" /></p>
+@*
+<div class="card">
+    <div class="card-header">
+        <h1>登入</h1>
+    </div>
+    <div class="card-body">
+        <h3 class="text-danger">@TempData["Text"]</h3>
+        <form asp-action="Login" asp-controller="Home">
+            <div class="form-group">
+                <label for="username">帳號:</label>
+                <input class="form-control" name="username" id="username" required />
+            </div>
+            <div class="form-group">
+                <label for="password">密碼:</label>
+                <input class="form-control" name="password" id="password" type="password" required />
+            </div>
+            <div class="text-center">
+                <input type="submit" class="btn btn-primary" value="登入" />
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="text-center">
+            沒有帳號嗎？ <a href="#" id="registerLink">註冊</a>
         </div>
     </div>
-</form>
+</div>
+
+<div class="card" id="registerCard" style="display:none;">
+    <div class="card-header">
+        <h1>註冊</h1>
+    </div>
+    <div class="card-body">
+        <h3 class="text-danger">@TempData["Text"]</h3>
+        <form asp-action="Register" asp-controller="Home">
+            <div class="form-group">
+                <label for="registerUsername">帳號:</label>
+                <input class="form-control" name="username" id="registerUsername" required />
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">密碼:</label>
+                <input class="form-control" name="password" id="registerPassword" type="password" required />
+            </div>
+            <div class="form-group">
+                <label for="passwordConfirm">請再輸入一次密碼:</label>
+                <input class="form-control" id="passwordConfirm" type="password" required />
+            </div>
+            <div class="text-center">
+                <input type="submit" class="btn btn-primary" value="註冊" />
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="text-center">
+            已有帳號？ <a href="#" id="loginLink">返回登入</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#registerLink").click(function () {
+            $("#registerCard").show();
+            $(".card").not("#registerCard").hide();
+        });
+
+        $("#loginLink").click(function () {
+            $(".card").not("#registerCard").show();
+            $("#registerCard").hide();
+        });
+    });
+</script>*@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<link rel="stylesheet" href="./style.css">
+<div class="box">
+    <div class="box-form">
+        <div class="box-login-title">
+            <button id="loginbut" class="btn text-black btn-link">
+                <h2>Sign In</h2>
+            </button>&emsp;
+            <button id="registerbut" class="btn text-black">
+                <h2>Sign Up</h2>
+            </button>
+        </div>
+        <div class="box-login">
+            <div class="fielset-body" id="login_form">
+                <form asp-action="Login" asp-controller="Home">
+                    <p class="field">
+                        <label for="user">帳號</label>
+                        <input type="text" id="user" name="username" title="Username" />
+                    </p>
+                    <p class="field">
+                        <label for="pass">密碼</label>
+                        <input type="password" id="pass" name="password" title="password" />
+                    </p>
+                    <input class="btn" type="submit" id="do login" value="登入" title="Get Started" />
+                </form>
+            </div>
+        </div>
+        <div class="box-register" style="display:none">
+            <div class="fielset-body" id="login_form">
+                <form asp-action="Register" asp-controller="Home">
+                    <p class="field">
+                        <label for="user">帳號</label>
+                        <input type="text" id="user" name="username" title="Username" />
+                    </p>
+                    <p class="field">
+                        <label for="pass">密碼</label>
+                        <input type="password" id="pass" name="password" title="password" />
+                        <input type="password" id="passcon" placeholder="請再輸入一次密碼" />
+                    </p>
+                    <input class="btn" type="submit" id="do login" value="註冊" title="Get Started" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80vh;
+    }
+
+    .box-form {
+        width: 400px;
+        padding: 40px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .box-login-tab {
+        height: 20px;
+        /* 设置登录标签样式 */
+    }
+
+    .box-login-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+        .box-login-title .i-login {
+            /* 设置登录图标样式 */
+        }
+
+        .box-login-title h2 {
+            margin-left: 10px;
+            /* 设置登录标题样式 */
+        }
+
+    .box-login {
+        /* 设置登录表单样式 */
+    }
+
+    .fieldset-body {
+        position: relative;
+    }
+
+    .field {
+        margin-bottom: 20px;
+    }
+
+        .field label {
+            display: block;
+            /* 设置标签样式 */
+        }
+
+        .field input[type="text"],
+        .field input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            /* 设置输入框样式 */
+        }
+
+    input[type="submit"] {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-top: 20px;
+        background-color: #4CAF50;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        /* 设置提交按钮样式 */
+    }
+
+    /*.line-wh {
+        height: 1px;
+        background-color: #ccc;
+        margin-bottom: 20px;
+    }*/
+
+    /*.b-support,
+    .b-cta {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        background-color: #ccc;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        /* 设置按钮样式 */
+    }*/
+
+</style>
+
+<script>
+    $(document).ready(function () {
+        $("#loginbut").click(function () {
+            $(this).addClass("btn-link");
+            $("#registerbut").removeClass("btn-link");
+            $(".box-login").show();
+            $(".box-register").hide();
+        });
+
+        $("#registerbut").click(function () {
+            $(this).addClass("btn-link");
+            $("#loginbut").removeClass("btn-link");
+            $(".box-register").show();
+            $(".box-login").hide();
+        });
+    });
+</script>

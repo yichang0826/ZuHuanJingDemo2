@@ -6,3 +6,5 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("CodeQuality", "IDE0052:刪除未讀取的私用成員", Justification = "<暫止>", Scope = "member", Target = "~F:ZuHuanJingDemo2.Controllers.HomeController._logger")]
+[assembly: SuppressMessage("Style", "IDE1006:命名樣式", Justification = "<暫止>", Scope = "member", Target = "~P:ZuHuanJingDemo2.Models.ViewModel.MemberEditViewModel.member")]
+[assembly: SuppressMessage("Style", "IDE1006:命名樣式", Justification = "<暫止>", Scope = "member", Target = "~P:ZuHuanJingDemo2.Models.ViewModel.MemberEditViewModel.licenses")]

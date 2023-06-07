@@ -4,83 +4,79 @@
 }
 <h1>新增課程</h1>
 <div class="card">
-<form asp-action="Create">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <div class="card-header">
-        <input type="submit" value="Create" class="btn btn-primary" />
-        <a asp-action="Index" class="btn btn-danger">Back to List</a>
-    </div>
-    <div class="card-body">
-    <div class="row">
-        <div class="form-group col-lg-4 col-md-12 col-sm-12">
-            <label asp-for="Course_Name" class="control-label"></label>
-            <input asp-for="Course_Name" class="form-control" />
-            <span asp-validation-for="Course_Name" class="text-danger"></span>
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="card-header">
+            <input type="submit" value="Create" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-danger">Back to List</a>
         </div>
-        <div class="form-group col-lg-4 col-md-6 col-sm-12">
-            <label asp-for="Course_Teacher" class="control-label"></label>
-            <input asp-for="Course_Teacher" class="form-control" />
-            <span asp-validation-for="Course_Teacher" class="text-danger"></span>
-        </div>
-        <div class="form-group col-lg-4 col-md-6 col-sm-12">
-            <label asp-for="Course_IsActive" class="control-label"></label>
-            <div>
-                <input asp-for="Course_IsActive" type="radio" value=1 checked />是
-                <input asp-for="Course_IsActive" type="radio" value=0 />否
+        <div class="card-body">
+            <div class="row">
+                <div class="form-group col-lg-4 col-md-12 col-sm-12">
+                    <label asp-for="Course_Name" class="control-label"></label>
+                    <input asp-for="Course_Name" class="form-control" required />
+                    <span asp-validation-for="Course_Name" class="text-danger"></span>
+                </div>
+                <div class="form-group col-lg-4 col-md-6 col-sm-12">
+                    <label asp-for="Course_Teacher" class="control-label"></label>
+                    <input asp-for="Course_Teacher" class="form-control" required />
+                    <span asp-validation-for="Course_Teacher" class="text-danger"></span>
+                </div>
+                <div class="form-group col-lg-4 col-md-6 col-sm-12">
+                    <label asp-for="Course_IsActive" class="control-label"></label>
+                    <div>
+                        <input asp-for="Course_IsActive" type="radio" value=1 checked />是
+                        <input asp-for="Course_IsActive" type="radio" value=0 />否
+                    </div>
+                    <span asp-validation-for="Course_IsActive" class="text-danger"></span>
+                </div>
             </div>
-            <span asp-validation-for="Course_IsActive" class="text-danger"></span>
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label asp-for="Course_MaxCount" class="control-label"></label>
+                    <input asp-for="Course_MaxCount" class="form-control" required />
+                    <span asp-validation-for="Course_MaxCount" class="text-danger"></span>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label asp-for="Course_SumCount" class="control-label"></label>
+                    <input asp-for="Course_SumCount" class="form-control" value=0 required />
+                    <span asp-validation-for="Course_SumCount" class="text-danger"></span>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label asp-for="Course_StartDate" class="control-label"></label>
+                    <input asp-for="Course_StartDate" id="CourseStartDate" class="form-control" required />
+                    <span asp-validation-for="Course_StartDate" class="text-danger"></span>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label asp-for="Course_EndDate" class="control-label"></label>
+                    <input asp-for="Course_EndDate" id="CourseEndDate" class="form-control" required disabled />
+                    <span asp-validation-for="Course_EndDate" class="text-danger"></span>
+                    <span id="CourseEndDateText" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group" hidden>
+                <label asp-for="Course_CreateDate" class="control-label"></label>
+                <input asp-for="Course_CreateDate" class="form-control" />
+                <span asp-validation-for="Course_CreateDate" class="text-danger"></span>
+            </div>
+            <div class="row">
+                <div class="form-group col-12">
+                    <label asp-for="Course_Introduction" class="control-label"></label>
+                    <textarea class="form-control" name="Course_Introduction" id="editor" data-val-ignore="true" onchange="ContentChange()"></textarea>
+                    <input type="hidden" asp-for="Course_Introduction" id="CourseIntroduction" name="CourseIntroduction" />
+                    <span asp-validation-for="Course_Introduction" class="text-danger"></span>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <label asp-for="Course_MaxCount" class="control-label"></label>
-            <input asp-for="Course_MaxCount" class="form-control" />
-            <span asp-validation-for="Course_MaxCount" class="text-danger"></span>
-        </div>
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <label asp-for="Course_SumCount" class="control-label"></label>
-            <input asp-for="Course_SumCount" class="form-control" value=0 />
-            <span asp-validation-for="Course_SumCount" class="text-danger"></span>
-        </div>
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <label asp-for="Course_StartDate" class="control-label"></label>
-            <input asp-for="Course_StartDate" class="form-control" />
-            <span asp-validation-for="Course_StartDate" class="text-danger"></span>
-        </div>
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <label asp-for="Course_EndDate" class="control-label"></label>
-            <input asp-for="Course_EndDate" class="form-control" />
-            <span asp-validation-for="Course_EndDate" class="text-danger"></span>
-        </div>
-    </div>
-    <div class="form-group" hidden>
-        <label asp-for="Course_CreateDate" class="control-label"></label>
-        <input asp-for="Course_CreateDate" class="form-control" />
-        <span asp-validation-for="Course_CreateDate" class="text-danger"></span>
-    </div>
-    <div class="row">
-        <div class="form-group col-12">
-            <label asp-for="Course_Introduction" class="control-label"></label>
-            <textarea class="form-control" name="Course_Introduction" id="editor" data-val-ignore="true" onchange="ContentChange()"></textarea>
-            <input type="hidden" asp-for="Course_Introduction" id="CourseIntroduction" name="CourseIntroduction" />
-            <span asp-validation-for="Course_Introduction" class="text-danger"></span>
-        </div>
-    </div>
-    </div>
-</form>
+    </form>
 </div>
 <script src="~/lib/ckeditor5/build/ckeditor.js"></script>
-<script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script hidden>
     document.addEventListener("DOMContentLoaded", function () {
         ClassicEditor
             .create(document.querySelector('#editor'), {
                 toolbar: {
-                    //items: [
-                    //    'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
-                    //    '|', 'alignment', 'outdent', 'indent', '|', 'fontSize', 'fontColor',
-                    //    '|', 'imageUpload', 'blockQuote', 'insertTable', 'mediaEmbed',
-                    //    'undo', 'redo'
-                    //]
                     items: [
                         'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
                         '|', 'alignment', '|', 'fontSize', 'fontColor',
@@ -108,6 +104,7 @@
                 console.error(error);
             });
     });
+
     function getContent() {
         return ClassicEditor
             .instances
@@ -119,4 +116,26 @@
         var content = getContent();
         document.getElementById("CourseIntroduction").value = content;
     }
+
+    $(document).ready(function () {
+        $("#CourseStartDate").on("change", function () {
+            var startDate = new Date($("#CourseStartDate").val());
+            console.log(startDate);
+            if (!isNaN(startDate.getTime())) {
+                $("#CourseEndDate").prop("disabled", false);
+            } else {
+                $("#CourseEndDate").prop("disabled", true);
+            }
+        });
+
+        $("#CourseEndDate").on("change", function () {
+            var startDate = new Date($("#CourseStartDate").val());
+            var endDate = new Date($("#CourseEndDate").val());
+            console.log(endDate);
+            if (endDate && endDate < startDate) {
+                $("#CourseEndDate").val("");
+                alert("結束日期不能在開始日期之前");
+            }
+        });
+    });
 </script>

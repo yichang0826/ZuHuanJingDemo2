@@ -1,76 +1,66 @@
 ﻿@model ZuHuanJingDemo2.Models.ViewModel.MemberEditViewModel
 @{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
     ViewData["Title"] = "Edit";
 }
 
 <h1>編輯會員</h1>
-<div>
-    <a class="btn btn-info" asp-action="Index">Back to List</a>
-</div>
 <hr />
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
+<form asp-action="Edit" asp-controller="Members" asp-route-id="@Model.member.Member_Id">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="card">
+        <div class="card-header">
 
-    <div class="form-group">
-        <label asp-for="member.Member_Name" class="control-label"></label>
-        <input asp-for="member.Member_Name" class="form-control" />
-        <span asp-validation-for="member.Member_Name" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="member.Member_Account" class="control-label"></label>
-        <input asp-for="member.Member_Account" class="form-control" />
-        <span asp-validation-for="member.Member_Account" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="member.Member_Password" class="control-label"></label>
-        <input asp-for="member.Member_Password" class="form-control" />
-        <span asp-validation-for="member.Member_Password" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="member.Member_Email" class="control-label"></label>
-        <input asp-for="member.Member_Email" class="form-control" />
-        <span asp-validation-for="member.Member_Email" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="member.Is_Baned" class="control-label"></label>
-        <div>
-            <input asp-for="member.Is_Baned" />
+            <input type="submit" value="儲存" class="btn btn-primary" />
+            <a class="btn btn-danger" asp-action="Index">返回</a>&ensp;
+            <label>
+                封鎖:
+                <input asp-for="member.Is_Baned" name="memberIsBaned" type="radio" value=0 checked />否
+                <input asp-for="member.Is_Baned" name="memberIsBaned" type="radio" value=1 />是
+            </label>
+            &ensp;編號:
+            <input asp-for="member.Member_Id" value="@Model.member.Member_Id" style="width:50px" hidden />
         </div>
-        <span asp-validation-for="member.Is_Baned" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="member.Member_CreateDate" class="control-label"></label>
-        <input asp-for="member.Member_CreateDate" class="form-control" disabled />
-        <span asp-validation-for="member.Member_CreateDate" class="text-danger"></span>
-    </div>
-
-    <div class="col-12">
-        <h4>擁有的證照</h4>
-        @foreach (var license in Model.licenses)
-        {
-            <div>
-                <input type="checkbox" id="license_@license.License_Id" name="selectedLicenses" value="@license.License_Id"
-                @(Model.member.Member_Licenses.Any(l => l.License_Id == license.License_Id) ? "checked" : "") />
-                <label for="license_@license.License_Id">@license.License_Name</label>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-4">
+                    <label asp-for="member.Member_Name" class="control-label"></label>
+                    <input asp-for="member.Member_Name" class="form-control" required/>
+                    <span asp-validation-for="member.Member_Name" class="text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="member.Member_Account" class="control-label"></label>
+                    <input asp-for="member.Member_Account" class="form-control" required />
+                    <span asp-validation-for="member.Member_Account" class="text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="member.Member_Password" class="control-label"></label>
+                    <input asp-for="member.Member_Password" class="form-control" value="member.Member_Password" disabled />
+                    <span asp-validation-for="member.Member_Password" class="text-danger"></span>
+                </div>
+                <div class="col-6">
+                    <label asp-for="member.Member_Email" class="control-label"></label>
+                    <input asp-for="member.Member_Email" class="form-control" required />
+                    <span asp-validation-for="member.Member_Email" class="text-danger"></span>
+                </div>
+                <div class="col-6">
+                    <label asp-for="member.Member_CreateDate" class="control-label"></label>
+                    <input asp-for="member.Member_CreateDate" class="form-control" disabled />
+                    <span asp-validation-for="member.Member_CreateDate" class="text-danger"></span>
+                </div>
+                <br /><br /><br />
+                <div class="card-footer col-12">
+                    <h4>擁有的證照</h4>
+                    @foreach (var license in Model.licenses)
+                    {
+                        <div>
+                            <input type="checkbox" id="license_@license.License_Id" name="selectedLicenses" value="@license.License_Id"
+                            @(Model.member.Member_Licenses.Any(l => l.License_Id == license.License_Id) ? "checked" : "") />
+                            <label for="license_@license.License_Id">@license.License_Name</label>
+                        </div>
+                    }
+                </div>
             </div>
-        }
+        </div>
     </div>
-
-
-
-    <div class="form-group">
-        <input type="submit" value="Save" class="btn btn-primary" />
-    </div>
-}
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
+</form>

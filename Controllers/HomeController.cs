@@ -65,15 +65,21 @@ namespace ZuHuanJingDemo2.Controllers
                 command.Parameters.AddWithValue("@password", password);
 
                 using MySqlDataReader reader = command.ExecuteReader();
-                while (await reader.ReadAsync())
+                while (reader.Read())
                 {
                     memberAccount = reader.GetString("Member_Account");
                     break;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ViewData["Danger"] = "Invald Email or Password";
+                TempData["Text"] = ex.Message;
+                return RedirectToAction("~/Views/Home/ErrorView");
+            }
+
+            if (memberAccount == null || memberAccount == "")
+            {
+                TempData["Text"] = "帳號或密碼錯誤 請重試";
                 return View();
             }
 
@@ -95,7 +101,10 @@ namespace ZuHuanJingDemo2.Controllers
                         CookieAuthenticationDefaults.AuthenticationScheme,
                         new ClaimsPrincipal(claimsIdentity), authProperties);
             }
-            catch (Exception) { return NotFound(); }
+            catch (Exception ex) {
+                TempData["Text"] = ex.Message;
+                return RedirectToAction("~/Views/Home/ErrorView"); 
+            }
             return RedirectToAction("Index", "Home");
         }
 

@@ -28,19 +28,19 @@
         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
             <ul class="navbar-nav flex-grow-1">
                 <li class="nav-item">
-                    <a class="nav-link text-dark fs-5" asp-area="" asp-controller="Members" asp-action="Index">
+                    <a class="nav-link text-dark" asp-area="" asp-controller="Members" asp-action="Index">
                         <i class="fas fa-user"></i>
                         會員
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark fs-5" asp-area="" asp-controller="Courses" asp-action="Index">
+                    <a class="nav-link text-dark" asp-area="" asp-controller="Courses" asp-action="Index">
                         <i class="fas fa-book"></i>
                         課程
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark fs-5" asp-area="" asp-controller="Licenses" asp-action="Index">
+                    <a class="nav-link text-dark" asp-area="" asp-controller="Licenses" asp-action="Index">
                         <i class="fas fa-id-card"></i>
                         證照
                     </a>
@@ -64,3 +64,13 @@
         }
     </div>
 </nav>
+<style>
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: transparent;
+        backdrop-filter: blur(20px);
+        white-space: nowrap;
+    }
+</style>
