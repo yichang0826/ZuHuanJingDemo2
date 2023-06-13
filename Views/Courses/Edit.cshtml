@@ -1,72 +1,154 @@
 ﻿@model ZuHuanJingDemo2.Models.Course
-
 @{
     ViewData["Title"] = "Edit";
-    Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<h1>Edit</h1>
-
-<h4>Course</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Course_Id" />
-            <div class="form-group">
-                <label asp-for="Course_Name" class="control-label"></label>
-                <input asp-for="Course_Name" class="form-control" />
-                <span asp-validation-for="Course_Name" class="text-danger"></span>
+<h1>編輯課程</h1>
+<div class="card">
+    <form asp-action="Edit">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input asp-for="Course_Id" class="form-control" hidden/>
+        <div class="card-header">
+            <input type="submit" value="儲存" class="btn btn-primary"/>
+            <a asp-action="Index" class="btn btn-danger" onclick="return confirm('確定要返回嗎?')">返回</a>&ensp;
+            <span>
+                <label asp-for="Course_IsActive" class="control-label"></label>:
+                <input asp-for="Course_IsActive" type="radio" id="active" value=1/>
+                <label for="active">是</label>
+                <input asp-for="Course_IsActive" type="radio" id="nactive" value=0 />
+                <label for="nactive">否</label>
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="form-group col-lg-4 col-md-12 col-sm-12">
+                    <label asp-for="Course_Name" class="control-label"></label>
+                    <input asp-for="Course_Name" class="form-control" required />
+                    <span asp-validation-for="Course_Name" class="text-danger"></span>
+                </div>
+                <div class="form-group col-lg-4 col-md-6 col-sm-12">
+                    <label asp-for="Course_Teacher" class="control-label"></label>
+                    <input asp-for="Course_Teacher" class="form-control" required />
+                    <span asp-validation-for="Course_Teacher" class="text-danger"></span>
+                </div>
+                <div class="form-group col-lg-4 col-md-6 col-sm-12">
+                    <label asp-for="Course_CreateDate" class="control-label"></label>:
+                    <p>@Model.Course_CreateDate</p>
+                    <input asp-for="Course_CreateDate" class="form-control" hidden/>
+                    <span asp-validation-for="Course_CreateDate" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Course_Teacher" class="control-label"></label>
-                <input asp-for="Course_Teacher" class="form-control" />
-                <span asp-validation-for="Course_Teacher" class="text-danger"></span>
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label asp-for="Course_MaxCount" class="control-label"></label>
+                    <input asp-for="Course_MaxCount" id="CourseMaxCount" class="form-control" value="10" type="number" required min="0" />
+                    <span asp-validation-for="Course_MaxCount" class="text-danger"></span>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label asp-for="Course_SumCount" class="control-label"></label>
+                    <input asp-for="Course_SumCount" id="CourseSumCount" class="form-control" value="0" type="number" required min="0" max="@Model.Course_MaxCount" />
+                    <span asp-validation-for="Course_SumCount" class="text-danger"></span>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label asp-for="Course_StartDate" class="control-label"></label>
+                    <input asp-for="Course_StartDate" id="CourseStartDate" class="form-control" type="date" required />
+                    <span asp-validation-for="Course_StartDate" class="text-danger"></span>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-12">
+                    <label asp-for="Course_EndDate" class="control-label"></label>
+                    <input asp-for="Course_EndDate" id="CourseEndDate" class="form-control" type="date" required />
+                    <span asp-validation-for="Course_EndDate" class="text-danger"></span>
+                    <span id="CourseEndDateText" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Course_Introduction" class="control-label"></label>
-                <input asp-for="Course_Introduction" class="form-control" />
-                <span asp-validation-for="Course_Introduction" class="text-danger"></span>
+            <div class="row">
+                <div class="form-group col-12">
+                    <label asp-for="Course_Introduction" class="control-label"></label>
+                    <textarea class="form-control" name="Course_Introduction" id="editor" data-val-ignore="true" onchange="ContentChange()">@Html.Raw(Model.Course_Introduction)</textarea>
+                    <input type="hidden" asp-for="Course_Introduction" id="CourseIntroduction" name="CourseIntroduction" />
+                    <span asp-validation-for="Course_Introduction" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Course_MaxCount" class="control-label"></label>
-                <input asp-for="Course_MaxCount" class="form-control" />
-                <span asp-validation-for="Course_MaxCount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Course_SumCount" class="control-label"></label>
-                <input asp-for="Course_SumCount" class="form-control" />
-                <span asp-validation-for="Course_SumCount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Course_StartDate" class="control-label"></label>
-                <input asp-for="Course_StartDate" class="form-control" />
-                <span asp-validation-for="Course_StartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Course_EndDate" class="control-label"></label>
-                <input asp-for="Course_EndDate" class="form-control" />
-                <span asp-validation-for="Course_EndDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Course_CreateDate" class="control-label"></label>
-                <input asp-for="Course_CreateDate" class="form-control" />
-                <span asp-validation-for="Course_CreateDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Course_IsActive" class="control-label"></label>
-                <input asp-for="Course_IsActive" class="form-control" />
-                <span asp-validation-for="Course_IsActive" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
+<script src="~/lib/ckeditor5/build/ckeditor.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script hidden>
+    document.addEventListener("DOMContentLoaded", function () {
+        ClassicEditor
+            .create(document.querySelector('#editor'), {
+                toolbar: {
+                    items: [
+                        'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
+                        '|', 'alignment', '|', 'fontSize', 'fontColor',
+                        '|', 'blockQuote', 'undo', 'redo'
+                    ]
+                },
+                image: {
+                    toolbar: [
+                        'imageTextAlternative', 'imageStyle:inline',
+                        'imageStyle:block', 'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn', 'tableRow', 'mergeTableCells'
+                    ],
+                },
+                licenseKey: ''
+            })
+            .then(editor => {
+                window.editor = editor;
+            })
+            .catch(error => {
+                console.error('Oops, something went wrong!');
+                console.error(error);
+            });
+    });
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    function getContent() {
+        return ClassicEditor
+            .instances
+            .editor
+            .getData();
+    }
 
+    function ContentChange() {
+        var content = getContent();
+        document.getElementById("CourseIntroduction").value = content;
+    }
+
+    $(document).ready(function () {
+        $("#CourseSumCount, #CourseMaxCount").on("change", function () {
+            var maxcount = parseInt($("#CourseMaxCount").val(), 10);
+            var sumcount = parseInt($("#CourseSumCount").val(), 10);
+            if (maxcount < 0) {
+                $("#CourseMaxCount").val("");
+                alert("最大人數不能小於 0");
+            } else if(maxcount < sumcount) {
+                $("#CourseSumCount").val("");
+                alert("目前人數不能比最大人數多");
+            }
+        });
+
+        $("#CourseStartDate").on("change", function () {
+            var startDate = new Date($("#CourseStartDate").val());
+            console.log(startDate);
+            if (!isNaN(startDate.getTime())) {
+                $("#CourseEndDate").prop("disabled", false);
+            } else {
+                $("#CourseEndDate").prop("disabled", true);
+            }
+        });
+
+        $("#CourseEndDate").on("change", function () {
+            var startDate = new Date($("#CourseStartDate").val());
+            var endDate = new Date($("#CourseEndDate").val());
+            console.log(endDate);
+            if (endDate && endDate < startDate) {
+                $("#CourseEndDate").val("");
+                alert("結束日期不能在開始日期之前");
+            }
+        });
+    });
+</script>

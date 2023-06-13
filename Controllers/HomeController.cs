@@ -22,13 +22,32 @@ namespace ZuHuanJingDemo2.Controllers
             _configuration = configuration;
         }
 
+        //public static class MyClaimsTypes
+        //{
+        //    public const string Name = "MyApp:Name";
+        //    public const string MemberID = "MyApp:MemberID";
+        //    public const string Permission = "MyApp:Permission";
+        //    public const string Department = "MyApp:Department";
+        //}
+
         public IActionResult Index()
         {
-            if (User.Identity?.Name == "admin")
+            if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction("Index","Members");
+                var userNameClaim = User.FindFirst(MyClaimsTypes.Name)?.Value;
+                if (userNameClaim == "admin")
+                {
+                    return RedirectToAction("Index", "Members");
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Main");
+                }
             }
-            return View();
+            else
+            {
+                return View();
+            }
         }
 
         public IActionResult Privacy()
@@ -55,6 +74,7 @@ namespace ZuHuanJingDemo2.Controllers
         {
             string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
             string memberAccount = "";
+            string memberId = "";
             try
             { 
                 using MySqlConnection connection = new(connectionString);
@@ -68,6 +88,7 @@ namespace ZuHuanJingDemo2.Controllers
                 while (reader.Read())
                 {
                     memberAccount = reader.GetString("Member_Account");
+                    memberId = reader.GetInt32("Member_Id").ToString();
                     break;
                 }
             }
@@ -87,7 +108,8 @@ namespace ZuHuanJingDemo2.Controllers
             {
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, memberAccount)
+                    new Claim(MyClaimsTypes.Name, memberAccount),
+                    new Claim(MyClaimsTypes.MemberID, memberId)
                 };
                 var claimsIdentity = new ClaimsIdentity(
                         claims, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -1,0 +1,66 @@
+﻿@model ZuHuanJingDemo2.Models.Course
+@{
+    ViewData["Title"] = "Details";
+    var x = Model.Course_MaxCount - Model.Course_SumCount;
+}
+@if (Model != null)
+{
+    <h1>課程細節</h1>
+    <div class="card">
+        <div class="card-header">
+            @*<div class="d-flex justify-content-between">*@
+            <div class="d-flex">
+                <a class="btn btn-info" asp-action="Course">返回</a>&ensp;
+                @if (TempData["Status"]  == null || TempData["Status"] == " ")
+                {
+                    <form asp-action="Apply">
+                        <input name="applyUserId" value="@User.FindFirst(MyClaimsTypes.MemberID)?.Value" hidden />
+                        <input name="applyCourseId" value="@Model.Course_Id" hidden />
+                        <input type="submit" class="btn btn-primary" value="報名">
+                    </form>
+                }
+                else
+                {
+                    <label style="display: flex;text-align:center;align-items:center;justify-content: center;">您已報名參加 報名時間: @TempData["Status"]</label>
+                }
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <h5 class="card-title">@Html.DisplayNameFor(model => model.Course_Name)</h5>
+                    <p class="card-text">@Html.DisplayFor(model => model.Course_Name)</p>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="card-title">@Html.DisplayNameFor(model => model.Course_Teacher)</h5>
+                    <p class="card-text">@Html.DisplayFor(model => model.Course_Teacher)</p>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="card-title">名額</h5>
+                    <p class="card-text">@x</p>
+                </div>
+                <hr />
+                <div class="col-md-4">
+                    <h5 class="card-title">@Html.DisplayNameFor(model => model.Course_StartDate)</h5>
+                    <p class="card-text">@Html.DisplayFor(model => model.Course_StartDate)</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="card-title">@Html.DisplayNameFor(model => model.Course_EndDate)</h5>
+                    <p class="card-text">@Html.DisplayFor(model => model.Course_EndDate)</p>
+                </div>
+
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-md-12">
+                    <h5>@Html.DisplayNameFor(model => model.Course_Introduction)</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            @Html.Raw(Model?.Course_Introduction)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

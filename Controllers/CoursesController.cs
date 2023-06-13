@@ -106,7 +106,8 @@ namespace ZuHuanJingDemo2.Controllers
         #region ========================================================= Create
         public IActionResult Create()
         {
-            return View();
+            var model = new Course();
+            return View(model);
         }
 
         // POST: Courses/Create
@@ -167,19 +168,75 @@ namespace ZuHuanJingDemo2.Controllers
         #endregion
 
         #region ========================================================= Edit
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
-            if (id == null || _context.Course == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var course = await _context.Course.FindAsync(id);
-            if (course == null)
+            try
             {
-                return NotFound();
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                using MySqlConnection connection = new MySqlConnection(connectionString);
+                connection.Open();
+                string selectQuery = "SELECT * FROM `Course` WHERE Course_Id = @CourseId";
+
+                using MySqlCommand command = new MySqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@CourseId", id);
+
+                try
+                {
+                    using MySqlDataReader reader = command.ExecuteReader();
+                    Course? course = null;
+                    while (reader.Read())
+                    {
+                        if (course == null)
+                        {
+                            int courseId = reader.GetInt32("Course_Id");
+                            string courseName = reader.GetString("Course_Name");
+                            string courseTeacher = reader.GetString("Course_Teacher");
+                            string courseIntroduction = reader.GetString("Course_Introduction");
+                            int courseMaxCount = reader.GetInt32("Course_MaxCount");
+                            int courseSumCount = reader.GetInt32("Course_SumCount");
+                            DateTime courseStartDate = reader.GetDateTime("Course_StartDate");
+                            DateTime courseEndDate = reader.GetDateTime("Course_EndDate");
+                            DateTime createDate = reader.GetDateTime("Course_CreateDate");
+                            int courseIsActive = reader.GetInt32("Course_IsActive");
+
+                            course = new Course()
+                            {
+                                Course_Id = courseId,
+                                Course_Name = courseName,
+                                Course_Teacher = courseTeacher,
+                                Course_Introduction = courseIntroduction,
+                                Course_MaxCount = courseMaxCount,
+                                Course_SumCount = courseSumCount,
+                                Course_StartDate = courseStartDate,
+                                Course_EndDate = courseEndDate,
+                                Course_CreateDate = createDate,
+                                Course_IsActive = courseIsActive
+                            };
+                        }
+                    }
+                    if (course == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return View(course);
+                }
+                catch (Exception ex)
+                {
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
+                }
             }
-            return View(course);
+            catch (Exception ex)
+            {
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
+            }
         }
 
         // POST: Courses/Edit/5
@@ -187,7 +244,7 @@ namespace ZuHuanJingDemo2.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Course_Id,Course_Name,Course_Teacher,Course_Introduction,Course_MaxCount,Course_SumCount,Course_StartDate,Course_EndDate,Course_CreateDate,Course_IsActive")] Course course)
+        public IActionResult Edit(int id, [Bind("Course_Id,Course_Name,Course_Teacher,Course_Introduction,Course_MaxCount,Course_SumCount,Course_StartDate,Course_EndDate,Course_CreateDate,Course_IsActive")] Course course)
         {
             if (id != course.Course_Id)
             {
@@ -198,24 +255,39 @@ namespace ZuHuanJingDemo2.Controllers
             {
                 try
                 {
-                    _context.Update(course);
-                    await _context.SaveChangesAsync();
+                    string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                    using MySqlConnection connection = new MySqlConnection(connectionString);
+                    connection.Open();
+                    string updateQuery = "UPDATE `Course` SET `Course_Name` = @CourseName, `Course_Teacher` = @CourseTeacher, " +
+                                         "`Course_Introduction` = @CourseIntroduction, `Course_MaxCount` = @CourseMaxCount, " +
+                                         "`Course_SumCount` = @CourseSumCount, `Course_StartDate` = @CourseStartDate, " +
+                                         "`Course_EndDate` = @CourseEndDate, `Course_CreateDate` = @CourseCreateDate, " +
+                                         "`Course_IsActive` = @CourseIsActive WHERE `Course_Id` = @CourseId";
+
+                    using MySqlCommand command = new MySqlCommand(updateQuery, connection);
+                    command.Parameters.AddWithValue("@CourseId", course.Course_Id);
+                    command.Parameters.AddWithValue("@CourseName", course.Course_Name);
+                    command.Parameters.AddWithValue("@CourseTeacher", course.Course_Teacher);
+                    command.Parameters.AddWithValue("@CourseIntroduction", course.Course_Introduction);
+                    command.Parameters.AddWithValue("@CourseMaxCount", course.Course_MaxCount);
+                    command.Parameters.AddWithValue("@CourseSumCount", course.Course_SumCount);
+                    command.Parameters.AddWithValue("@CourseStartDate", course.Course_StartDate);
+                    command.Parameters.AddWithValue("@CourseEndDate", course.Course_EndDate);
+                    command.Parameters.AddWithValue("@CourseCreateDate", course.Course_CreateDate);
+                    command.Parameters.AddWithValue("@CourseIsActive", course.Course_IsActive);
+                    command.ExecuteNonQuery();
+
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!CourseExists(course.Course_Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(course);
         }
+
         #endregion
 
         #region ========================================================= Delete

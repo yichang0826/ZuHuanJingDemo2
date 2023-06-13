@@ -10,16 +10,25 @@
     @*<script src="https://unpkg.com/vue@next"></script>*@
     <script src="https://unpkg.com/vue@next/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    @if (User.Identity?.Name == "admin")
-    {
-        @await Component.InvokeAsync("AdminTopMenu")
-    }
-    else
-    {
-        @await Component.InvokeAsync("TopMenu")
+    @{
+        if (User.Identity.IsAuthenticated)
+        {
+            var userNameClaim = User.FindFirst(MyClaimsTypes.Name)?.Value;
+            if (userNameClaim == "admin")
+            {
+                @await Component.InvokeAsync("AdminTopMenu")
+            }
+            else
+            {
+                @await Component.InvokeAsync("MemberTopMenu")
+            }
+        }
+        else
+        {
+            @await Component.InvokeAsync("TopMenu")
+        }
     }
     <div class="container">
         <main role="main">
@@ -34,3 +43,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

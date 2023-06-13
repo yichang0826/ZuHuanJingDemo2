@@ -1,14 +1,24 @@
 ﻿@model ZuHuanJingDemo2.Models.Course
 @{
     ViewData["Title"] = "Create";
+    Model.Course_CreateDate = DateTime.Now;
+    Model.Course_StartDate = Model.Course_CreateDate.AddMonths(1);
+    Model.Course_EndDate = Model.Course_StartDate.AddMonths(1);
 }
 <h1>新增課程</h1>
 <div class="card">
     <form asp-action="Create">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <div class="card-header">
-            <input type="submit" value="Create" class="btn btn-primary" />
-            <a asp-action="Index" class="btn btn-danger">Back to List</a>
+            <input type="submit" value="儲存" class="btn btn-primary" />
+            <a asp-action="Index" class="btn btn-danger" onclick="return confirm('確定要返回嗎?')">返回</a>&ensp;
+            <span>
+                <label asp-for="Course_IsActive" class="control-label"></label>:
+                <input asp-for="Course_IsActive" type="radio" id="active" value=1 checked />
+                <label for="active">是</label>
+                <input asp-for="Course_IsActive" type="radio" id="nactive" value=0 />
+                <label for="nactive">否</label>
+            </span>
         </div>
         <div class="card-body">
             <div class="row">
@@ -23,41 +33,33 @@
                     <span asp-validation-for="Course_Teacher" class="text-danger"></span>
                 </div>
                 <div class="form-group col-lg-4 col-md-6 col-sm-12">
-                    <label asp-for="Course_IsActive" class="control-label"></label>
-                    <div>
-                        <input asp-for="Course_IsActive" type="radio" value=1 checked />是
-                        <input asp-for="Course_IsActive" type="radio" value=0 />否
-                    </div>
-                    <span asp-validation-for="Course_IsActive" class="text-danger"></span>
+                    <label asp-for="Course_CreateDate" class="control-label"></label>
+                    <input asp-for="Course_CreateDate" class="form-control" disabled />
+                    <span asp-validation-for="Course_CreateDate" class="text-danger"></span>
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <label asp-for="Course_MaxCount" class="control-label"></label>
-                    <input asp-for="Course_MaxCount" class="form-control" required />
+                    <input asp-for="Course_MaxCount" id="CourseMaxCount" class="form-control" value="10" type="number" required min="0"/>
                     <span asp-validation-for="Course_MaxCount" class="text-danger"></span>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <label asp-for="Course_SumCount" class="control-label"></label>
-                    <input asp-for="Course_SumCount" class="form-control" value=0 required />
+                    <input asp-for="Course_SumCount" id="CourseSumCount" class="form-control" value="0" type="number" required min="0" max="@Model.Course_MaxCount" />
                     <span asp-validation-for="Course_SumCount" class="text-danger"></span>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <label asp-for="Course_StartDate" class="control-label"></label>
-                    <input asp-for="Course_StartDate" id="CourseStartDate" class="form-control" required />
+                    <input asp-for="Course_StartDate" id="CourseStartDate" class="form-control" type="date" required />
                     <span asp-validation-for="Course_StartDate" class="text-danger"></span>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-12">
                     <label asp-for="Course_EndDate" class="control-label"></label>
-                    <input asp-for="Course_EndDate" id="CourseEndDate" class="form-control" required disabled />
+                    <input asp-for="Course_EndDate" id="CourseEndDate" class="form-control" type="date" required />
                     <span asp-validation-for="Course_EndDate" class="text-danger"></span>
                     <span id="CourseEndDateText" class="text-danger"></span>
                 </div>
-            </div>
-            <div class="form-group" hidden>
-                <label asp-for="Course_CreateDate" class="control-label"></label>
-                <input asp-for="Course_CreateDate" class="form-control" />
-                <span asp-validation-for="Course_CreateDate" class="text-danger"></span>
             </div>
             <div class="row">
                 <div class="form-group col-12">
@@ -118,6 +120,18 @@
     }
 
     $(document).ready(function () {
+        $("#CourseSumCount, #CourseMaxCount").on("change", function () {
+            var maxcount = parseInt($("#CourseMaxCount").val(), 10);
+            var sumcount = parseInt($("#CourseSumCount").val(), 10);
+            if (maxcount < 0) {
+                $("#CourseMaxCount").val(0);
+                alert("最大人數不能小於 0");
+            } else if(maxcount < sumcount) {
+                $("#CourseSumCount").val(0);
+                alert("目前人數不能比最大人數多");
+            }
+        });
+
         $("#CourseStartDate").on("change", function () {
             var startDate = new Date($("#CourseStartDate").val());
             console.log(startDate);

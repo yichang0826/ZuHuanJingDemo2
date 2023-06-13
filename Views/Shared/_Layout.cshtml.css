@@ -41,13 +41,14 @@ button.accept-policy {
 
 .container {
     background-image: url("https://zuhuanjing.blob.core.windows.net/image/LINE_ALBUM_202214_230607.jpg");
-    background-size: contain;
+    background-size:contain;
     background-attachment: fixed;
 }
 
     .container main {
-        padding:10px;
-        height:100%;
+        padding: 10px;
+        height: 100%;
+        width: 100%;
         margin-top: 70px;
         background-color: rgba(255, 255, 255, 0.95);
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);

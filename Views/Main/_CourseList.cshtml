@@ -3,14 +3,11 @@
 
 @if (Model != null)
 {
-    @foreach (var item in Model)
+    @foreach (var item in Model.Where(m => m.Course_IsActive == 1))
     {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Course_Id)
-            </td>
-            <td>
-                <a asp-controller="Courses" asp-action="Details" asp-route-id="@item.Course_Id">@Html.DisplayFor(modelItem => item.Course_Name)</a>
+                <a asp-controller="Main" asp-action="CourseDetails" asp-route-id="@item.Course_Id">@Html.DisplayFor(modelItem => item.Course_Name)</a>
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Course_Teacher)
@@ -36,10 +33,6 @@
                 {
                     <label>是</label>
                 }
-            </td>
-            <td>
-                <a asp-controller="Courses" asp-action="Edit" class="btn btn-primary" asp-route-id="@item.Course_Id">編輯</a>
-                <a asp-controller="Courses" asp-action="DeleteConfirm" class="btn btn-danger" asp-route-id="@item.Course_Id" onclick="return confirm('確定要刪除嗎?')">刪除</a>
             </td>
         </tr>
     }

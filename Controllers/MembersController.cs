@@ -91,7 +91,7 @@ namespace ZuHuanJingDemo2.Controllers
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
                 using MySqlConnection connection = new(connectionString);
                 connection.Open();
-                string selectQuery = "SELECT m.*, ml.CreatedDate, l.* " +
+                string selectQuery = "SELECT m.*, ml.MemberLicense_CreateDate, l.* " +
                              "FROM `Member` m " +
                              "LEFT JOIN `MemberLicense` ml ON m.Member_Id = ml.MemberId " +
                              "LEFT JOIN `License` l ON ml.LicenseId = l.License_Id " +
@@ -125,7 +125,7 @@ namespace ZuHuanJingDemo2.Controllers
                                 Member_Email = memberEmail,
                                 Is_Baned = isBaned,
                                 Member_CreateDate = createDate,
-                                Member_Licenses = new()
+                                Member_Licenses = new List<Models.License>()
                             };
                         }
 
@@ -134,7 +134,7 @@ namespace ZuHuanJingDemo2.Controllers
                             int licenseId = reader.GetInt32("License_Id");
                             string licenseName = reader.GetString("License_Name");
                             string licenseIntroduction = reader.GetString("License_Introduction");
-                            DateTime mlicenseCreateDate = reader.GetDateTime("CreatedDate");
+                            DateTime mlicenseCreateDate = reader.GetDateTime("MemberLicense_CreateDate");
 
                             Models.License license = new()
                             {
@@ -237,35 +237,35 @@ namespace ZuHuanJingDemo2.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create([Bind("Member_Name,Member_Account,Member_Password,Member_Email,Is_Baned")] Member member, int[] selectedLicenses)
         {
-            int maxid = 0;
+            int maxmid = 0;
             try
             {
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
                 using MySqlConnection connection = new(connectionString);
                 connection.Open();
 
-                string selectQuery = "SELECT MAX(`Member_Id`) AS MaxId FROM `member`";
+                string selectQuery = "SELECT MAX(`Member_Id`) AS MaxMId FROM `member`";
                 using MySqlCommand selectcommand = new MySqlCommand(selectQuery, connection);
                 using MySqlDataReader reader = selectcommand.ExecuteReader();
 
                 if (reader.Read())
                 {
-                    if (!reader.IsDBNull("MaxId"))
+                    if (!reader.IsDBNull("MaxMId"))
                     {
-                        maxid = reader.GetInt32("MaxId");
+                        maxmid = reader.GetInt32("MaxMId");
+                    }
+                    if (maxmid != 0)
+                    {
+                        maxmid++;
                     }
                 }
                 reader.Close();
-                if (maxid != 0)
-                {
-                    maxid++;
-                }
                 try
                 {
                     string insertQuery = "INSERT INTO `Member` (Member_Id, Member_Name, Member_Account, Member_Password, Member_Email, Is_Baned, Member_CreateDate) " +
                                          "VALUES (@Member_Id,  @Member_Name, @Member_Account, @Member_Password, @Member_Email, @Is_Baned, @Member_CreateDate)";
                     using MySqlCommand command = new(insertQuery, connection);
-                    command.Parameters.AddWithValue("@Member_Id", maxid);
+                    command.Parameters.AddWithValue("@Member_Id", maxmid);
                     command.Parameters.AddWithValue("@Member_Name", member.Member_Name);
                     command.Parameters.AddWithValue("@Member_Account", member.Member_Account);
                     command.Parameters.AddWithValue("@Member_Password", member.Member_Password);
@@ -287,19 +287,19 @@ namespace ZuHuanJingDemo2.Controllers
                         foreach (var licenseId in selectedLicenses)
                         {
                             Console.WriteLine(licenseId);
-                            string insertQuery = "INSERT INTO `memberlicense` (MemberId, LicenseId, CreatedDate) " +
-                                             "VALUES ( @MemberId, @LicenseId, @CreatedDate)";
+                            string insertQuery = "INSERT INTO `memberlicense` (MemberId, LicenseId, MemberLicense_CreateDate) " +
+                                             "VALUES (@MemberId, @LicenseId, @MemberLicense_CreateDate)";
                             using MySqlCommand command = new(insertQuery, connection);
-                            command.Parameters.AddWithValue("@MemberId", maxid);
+                            command.Parameters.AddWithValue("@MemberId", maxmid);
                             command.Parameters.AddWithValue("@LicenseId", licenseId);
-                            command.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                            command.Parameters.AddWithValue("@MemberLicense_CreateDate", DateTime.Now);
                             command.ExecuteNonQuery();
                         }
                     }
                     catch (Exception ex)
                     {
                         TempData["Text"] = $"出現錯誤：{ex.Message}";
-                        TempData["Detail"] = maxid;
+                        TempData["Detail"] = maxmid;
                         return View("~/Views/Home/ErrorView.cshtml");
                     }
                 }
@@ -353,7 +353,7 @@ namespace ZuHuanJingDemo2.Controllers
                 reader.Close();
                 #endregion
                 #region reading the member file
-                selectQuery = "SELECT m.*, ml.CreatedDate, l.* " +
+                selectQuery = "SELECT m.*, ml.MemberLicense_CreateDate, l.* " +
                              "FROM `Member` m " +
                              "LEFT JOIN `MemberLicense` ml ON m.Member_Id = ml.MemberId " +
                              "LEFT JOIN `License` l ON ml.LicenseId = l.License_Id " +
@@ -395,7 +395,7 @@ namespace ZuHuanJingDemo2.Controllers
                             int licenseId = reader1.GetInt32("License_Id");
                             string licenseName = reader1.GetString("License_Name");
                             string licenseIntroduction = reader1.GetString("License_Introduction");
-                            DateTime mlicenseCreateDate = reader1.GetDateTime("CreatedDate");
+                            DateTime mlicenseCreateDate = reader1.GetDateTime("MemberLicense_CreateDate");
                             Models.License license = new()
                             {
                                 License_Id = licenseId,
@@ -474,11 +474,11 @@ namespace ZuHuanJingDemo2.Controllers
                     // 添加新选择的许可证
                     foreach (int licenseId in licensesToAdd)
                     {
-                        string insertLicenseQuery = "INSERT INTO `memberlicense` (MemberId, LicenseId, CreatedDate) VALUES (@MemberId, @LicenseId, @CreatedDate)";
+                        string insertLicenseQuery = "INSERT INTO `memberlicense` (MemberId, LicenseId, MemberLicense_CreateDate) VALUES (@MemberId, @LicenseId, @MemberLicense_CreateDate)";
                         using MySqlCommand insertLicenseCommand = new MySqlCommand(insertLicenseQuery, connection);
                         insertLicenseCommand.Parameters.AddWithValue("@MemberId", id);
                         insertLicenseCommand.Parameters.AddWithValue("@LicenseId", licenseId);
-                        insertLicenseCommand.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                        insertLicenseCommand.Parameters.AddWithValue("@MemberLicense_CreateDate", DateTime.Now);
                         insertLicenseCommand.ExecuteNonQuery();
                     }
                 }
@@ -547,51 +547,6 @@ namespace ZuHuanJingDemo2.Controllers
         //    return RedirectToAction(nameof(Index));
         //}
         #endregion
-
-        public IActionResult Search(string? query, string sortField, string sortFun)
-        {
-            try
-            {
-                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
-                List<Member> members = new();
-
-                using MySqlConnection connection = new MySqlConnection(connectionString);
-                connection.Open();
-
-                string selectQuery = "SELECT * FROM `Member` WHERE `Member_Name` LIKE @Query OR `Member_Account` LIKE @Query OR `Member_Id` LIKE @Query ORDER BY " + sortField + " " + sortFun;
-
-                using MySqlCommand command = new MySqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@Query", $"%{query}%");
-
-                using MySqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    int memberId = reader.GetInt32("Member_Id");
-                    string memberName = reader.GetString("Member_Name");
-                    string memberAccount = reader.GetString("Member_Account");
-                    string memberEmail = reader.GetString("Member_Email");
-                    int isBaned = reader.GetInt32("Is_Baned");
-                    DateTime createDate = reader.GetDateTime("Member_CreateDate");
-
-                    Member member = new Member()
-                    {
-                        Member_Id = memberId,
-                        Member_Name = memberName,
-                        Member_Account = memberAccount,
-                        Member_Email = memberEmail,
-                        Is_Baned = isBaned,
-                        Member_CreateDate = createDate
-                    };
-                    members.Add(member);
-                }
-                return PartialView("_MemberList", members);
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Text = $"出現錯誤：{ex.Message}";
-                return View();
-            }
-        }
 
         private bool MemberExists(int id)
         {

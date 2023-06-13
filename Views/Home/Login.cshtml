@@ -74,6 +74,7 @@
     });
 </script>*@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" href="./style.css">
 <div class="box">
     <div class="box-form">
@@ -85,6 +86,7 @@
                 <h2>Sign Up</h2>
             </button>
         </div>
+        <p class="text-danger">@TempData["Text"]</p>
         <div class="box-login">
             <div class="fielset-body" id="login_form">
                 <form asp-action="Login" asp-controller="Home">
@@ -96,7 +98,7 @@
                         <label for="pass">密碼</label>
                         <input type="password" id="pass" name="password" title="password" />
                     </p>
-                    <input class="btn" type="submit" id="do login" value="登入" title="Get Started" />
+                    <input class="btn submitbtn" type="submit" id="do login" value="登入" title="Get Started" />
                 </form>
             </div>
         </div>
@@ -112,12 +114,13 @@
                         <input type="password" id="pass" name="password" title="password" />
                         <input type="password" id="passcon" placeholder="請再輸入一次密碼" />
                     </p>
-                    <input class="btn" type="submit" id="do login" value="註冊" title="Get Started" />
+                    <input class="btn submitbtn" type="submit" id="do login" value="註冊" title="Get Started" />
                 </form>
             </div>
         </div>
     </div>
 </div>
+<div id="loadingIndicator"><div class="spinner"></div></div>
 <style>
     .box {
         display: flex;
@@ -190,26 +193,28 @@
         /* 设置提交按钮样式 */
     }
 
-    /*.line-wh {
-        height: 1px;
-        background-color: #ccc;
-        margin-bottom: 20px;
-    }*/
-
-    /*.b-support,
-    .b-cta {
-        display: block;
+    #loadingIndicator {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        padding: 10px;
-        background-color: #ccc;
-        color: #fff;
-        border: none;
-        cursor: pointer;
-        /* 设置按钮样式 */
-    }*/
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* 半透明的背景色 */
+        z-index: 9999;
+        display: none;
+    }
 
+        #loadingIndicator::after {
+            content: "Loading...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+            animation: rotate 1s infinite linear;
+        }
 </style>
-
 <script>
     $(document).ready(function () {
         $("#loginbut").click(function () {
@@ -225,5 +230,23 @@
             $(".box-register").show();
             $(".box-login").hide();
         });
+
+        $(".submitbtn").click(function(){
+            showLoading();
+        })
     });
+
+    function showLoading() {
+        // 显示加载状态，覆盖整个视窗
+        var $loadingIndicator = $("#loadingIndicator");
+        $loadingIndicator.fadeIn();
+        $(document.body).css("overflow", "hidden"); // 禁用滚动条
+    }
+
+    function hideLoading() {
+        // 隐藏加载状态
+        var $loadingIndicator = $("#loadingIndicator");
+        $loadingIndicator.fadeOut();
+        $(document.body).css("overflow", ""); // 启用滚动条
+    }
 </script>

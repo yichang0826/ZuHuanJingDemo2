@@ -28,19 +28,19 @@
         <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
             <ul class="navbar-nav flex-grow-1">
                 <li class="nav-item">
-                    <a class="barlink nav-link" asp-area="" id="Members" asp-controller="Members" asp-action="Index">
+                    <a class="barlink nav-link" asp-area="" id="Members" asp-controller="Main" asp-action="Index">
                         <i class="fas fa-user"></i>
-                        會員
+                        主頁
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="barlink nav-link" asp-area="" id="Courses" asp-controller="Courses" asp-action="Index">
+                    <a class="barlink nav-link" asp-area="" id="Courses" asp-controller="Main" asp-action="Course">
                         <i class="fas fa-book"></i>
                         課程
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="barlink nav-link" asp-area="" id="Licenses" asp-controller="Licenses" asp-action="Index">
+                    <a class="barlink nav-link" asp-area="" id="Licenses" asp-controller="Main" asp-action="License">
                         <i class="fas fa-id-card"></i>
                         證照
                     </a>
@@ -72,11 +72,11 @@
 
         // 尋找與現在路徑相符的 nav-link
         if (currentPath.includes("/Members")) {
-            $("a.barlink[id='Members']").addClass("text-info");
+            $("a.barlink[id='Members']").addClass("text-danger");
         } else if (currentPath.includes("/Courses")) {
-            $("a.barlink[id='Courses']").addClass("text-info");
+            $("a.barlink[id='Courses']").addClass("text-danger");
         } else if (currentPath.includes("/Licenses")) {
-            $("a.barlink[id='Licenses']").addClass("text-info");
+            $("a.barlink[id='Licenses']").addClass("text-danger");
         }
     });
 </script>

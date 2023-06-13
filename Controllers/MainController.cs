@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using ZuHuanJingDemo2.Data;
 using ZuHuanJingDemo2.Models;
 using Google.Protobuf.WellKnownTypes;
+using System.Data;
 
 namespace ZuHuanJingDemo2.Controllers
 {
@@ -23,7 +24,136 @@ namespace ZuHuanJingDemo2.Controllers
             _configuration = configuration;
         }
 
-        public IActionResult Search(string searchQuery, string sortField, string sortFun, string? sortDate)
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Course()
+        {
+
+            return View();
+        }
+
+        public IActionResult CourseDetails(int id)
+        {
+            try
+            {
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                using MySqlConnection connection = new MySqlConnection(connectionString);
+                connection.Open();
+                string selectQuery = "SELECT c.*, cm.CourseMember_CreateDate " +
+                    "FROM `Course` c " +
+                    $"LEFT JOIN `CourseMember` cm ON cm.CourseId = c.Course_Id AND cm.MemberId = {id} " +
+                    "WHERE Course_Id = @CourseId";
+
+                using MySqlCommand command = new MySqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@CourseId", id);
+
+                try
+                {
+                    using MySqlDataReader reader = command.ExecuteReader();
+                    Course? course = null;
+                    while (reader.Read())
+                    {
+                        DateTime? coursememberCreateDate = reader.IsDBNull(reader.GetOrdinal("CourseMember_CreateDate")) ? null : reader.GetDateTime("CourseMember_CreateDate");
+                        TempData["Status"] = coursememberCreateDate;
+                        if (course == null)
+                        {
+                            int courseId = reader.GetInt32("Course_Id");
+                            string courseName = reader.GetString("Course_Name");
+                            string courseTeacher = reader.GetString("Course_Teacher");
+                            string courseIntroduction = reader.GetString("Course_Introduction");
+                            int courseMaxCount = reader.GetInt32("Course_MaxCount");
+                            int courseSumCount = reader.GetInt32("Course_SumCount");
+                            DateTime courseStartDate = reader.GetDateTime("Course_StartDate");
+                            DateTime courseEndDate = reader.GetDateTime("Course_EndDate");
+                            DateTime createDate = reader.GetDateTime("Course_CreateDate");
+                            int courseIsActive = reader.GetInt32("Course_IsActive");
+
+                            course = new Course()
+                            {
+                                Course_Id = courseId,
+                                Course_Name = courseName,
+                                Course_Teacher = courseTeacher,
+                                Course_Introduction = courseIntroduction,
+                                Course_MaxCount = courseMaxCount,
+                                Course_SumCount = courseSumCount,
+                                Course_StartDate = courseStartDate,
+                                Course_EndDate = courseEndDate,
+                                Course_CreateDate = createDate,
+                                Course_IsActive = courseIsActive
+                            };
+                        }
+                    }
+                    if (course == null)
+                    {
+                        return NotFound();
+                    }
+                    return View(course);
+                }
+                catch (Exception ex)
+                {
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Apply(int applyCourseId, int applyUserId)
+        {
+            int maxmid = 0;
+            try
+            {
+                string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+                using MySqlConnection connection = new(connectionString);
+                connection.Open();
+                try
+                {
+                    string insertQuery = "INSERT INTO `CourseMember` (CourseId, MemberId, CourseMember_CreateDate) VALUES (@CourseId, @MemberId, @CreateDate)";
+                    using (MySqlCommand command = new MySqlCommand(insertQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@CourseId", applyCourseId);
+                        command.Parameters.AddWithValue("@MemberId", applyUserId);
+                        command.Parameters.AddWithValue("@CreateDate", DateTime.Now);
+
+                        int rowsAffected = command.ExecuteNonQuery();
+                        // 檢查插入操作的影響行數，確保成功插入記錄
+                        if (rowsAffected > 0)
+                        {
+                            
+                            // 插入成功的處理
+                        }
+                        else
+                        {
+                            // 插入失敗的處理
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    TempData["Text"] = $"出現錯誤：{ex.Message}";
+                    return View("~/Views/Home/ErrorView.cshtml");
+                }
+                return RedirectToAction("CourseDetails", new {id = applyCourseId });
+                //return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
+            }
+        }
+
+        public IActionResult Search(string searchQuery, string sortField, string sortFun, string? sortDate, string? searching)
         {
             try
             {
@@ -114,7 +244,14 @@ namespace ZuHuanJingDemo2.Controllers
                         };
                         courses.Add(course);
                     }
-                    return PartialView("~/Views/Courses/_CourseList.cshtml", courses);
+                    if (searching == null)
+                    {
+                        return PartialView("~/Views/Courses/_CourseList.cshtml", courses);
+                    }
+                    else if (searching == "Main")
+                    {
+                        return PartialView("~/Views/Main/_CourseList.cshtml", courses);
+                    }
                 }
                 TempData["Text"] = "  sortField: " + sortField + "  || SortFun: " + sortFun + "  || SortDate: " + sortDate + "  || selectQuery:  " + selectQuery;
                 return RedirectToAction("ErrorView", "Home");
