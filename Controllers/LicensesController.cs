@@ -9,9 +9,12 @@ using Microsoft.EntityFrameworkCore;
 using ZuHuanJingDemo2.Data;
 using ZuHuanJingDemo2.Models;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace ZuHuanJingDemo2.Controllers
 {
+    [Authorize(Policy = "AdminOnly")]
     public class LicensesController : Controller
     {
         private readonly ZuHuanJingDemo2Context _context;

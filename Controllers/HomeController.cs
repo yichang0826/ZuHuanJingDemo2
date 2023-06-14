@@ -22,14 +22,6 @@ namespace ZuHuanJingDemo2.Controllers
             _configuration = configuration;
         }
 
-        //public static class MyClaimsTypes
-        //{
-        //    public const string Name = "MyApp:Name";
-        //    public const string MemberID = "MyApp:MemberID";
-        //    public const string Permission = "MyApp:Permission";
-        //    public const string Department = "MyApp:Department";
-        //}
-
         public IActionResult Index()
         {
             if (User.Identity.IsAuthenticated)
@@ -74,12 +66,13 @@ namespace ZuHuanJingDemo2.Controllers
         {
             string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
             string memberAccount = "";
+            string memberRole = "";
             string memberId = "";
             try
             { 
                 using MySqlConnection connection = new(connectionString);
                 await connection.OpenAsync();
-                string selectQuery = "SELECT * FROM `member` WHERE `Member_account` = @username AND `Member_Password` = @password";
+                string selectQuery = "SELECT `Member_Account`,`Member_Id`,`Member_Role` FROM `member` WHERE `Member_account` = @username AND `Member_Password` = @password";
                 using MySqlCommand command = new(selectQuery, connection);
                 command.Parameters.AddWithValue("@username", username);
                 command.Parameters.AddWithValue("@password", password);
@@ -89,6 +82,7 @@ namespace ZuHuanJingDemo2.Controllers
                 {
                     memberAccount = reader.GetString("Member_Account");
                     memberId = reader.GetInt32("Member_Id").ToString();
+                    memberRole = reader.GetString("Member_Role");
                     break;
                 }
             }
@@ -109,6 +103,7 @@ namespace ZuHuanJingDemo2.Controllers
                 var claims = new List<Claim>
                 {
                     new Claim(MyClaimsTypes.Name, memberAccount),
+                    new Claim(MyClaimsTypes.Role, memberRole),
                     new Claim(MyClaimsTypes.MemberID, memberId)
                 };
                 var claimsIdentity = new ClaimsIdentity(

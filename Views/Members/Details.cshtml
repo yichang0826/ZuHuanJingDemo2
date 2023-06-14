@@ -1,59 +1,4 @@
-﻿@*@model ZuHuanJingDemo2.Models.Member
-@{
-    ViewData["Title"] = "Details";
-}
-<h1>會員細節</h1>
-<div>
-    <div>
-        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model?.Member_Id">Edit</a>&ensp;
-        <a class="btn btn-info" asp-action="Index">Back to List</a>
-    </div>
-    <hr />
-    <div class="row">
-
-        <div class="col-sm-10">
-            @Html.DisplayFor(model => model.Member_Name)
-        </div>
-
-        <div class="col-sm-10">
-            @Html.DisplayFor(model => model.Member_Account)
-        </div>
-
-        <div class="col-sm-10">
-            @Html.DisplayFor(model => model.Member_Password)
-        </div>
-
-        <div class="col-sm-10">
-            @Html.DisplayFor(model => model.Member_Email)
-        </div>
-
-        <div class="col-sm-10">
-            @Html.DisplayFor(model => model.Is_Baned)
-        </div>
-
-        <div class="col-sm-10">
-            @Html.DisplayFor(model => model.Member_CreateDate)
-        </div>
-        <hr />
-        <div class="col-12">
-            擁有的證照
-        </div>
-        <div class="col-2">編號</div>
-        <div class="col-4">名稱</div>
-        <div class="col-6">獲得日期</div>
-        @if (Model is not null && Model.Member_Licenses is not null)
-        {
-            @foreach (var item in Model.Member_Licenses)
-            {
-                <div class="col-sm-2">@item.License_Id</div>
-                <div class="col-sm-4">@item.License_Name</div>
-                <div class="col-sm-6">@item.License_CreateDate</div>
-            }
-        }
-    </div>
-</div>
-*@
-@model ZuHuanJingDemo2.Models.Member
+﻿@model ZuHuanJingDemo2.Models.Member
 @{
     ViewData["Title"] = "Details";
 }
@@ -92,7 +37,7 @@
             </div>
             <div class="col-md-4">
                 <h5 class="card-title"><strong>是否封禁</strong></h5>
-                @if (Model.Is_Baned == 0)
+                @if (Model.Member_IsBaned == 0)
                 {
                     <p class="card-text">否</p>
                 }

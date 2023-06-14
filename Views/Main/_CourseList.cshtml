@@ -21,19 +21,6 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Course_EndDate)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Course_CreateDate)
-            </td>
-            <td>
-                @if (item.Course_IsActive == 0)
-                {
-                    <label>否</label>
-                }
-                else
-                {
-                    <label>是</label>
-                }
-            </td>
         </tr>
     }
 }

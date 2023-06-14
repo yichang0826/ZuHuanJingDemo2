@@ -9,9 +9,11 @@ using Microsoft.EntityFrameworkCore;
 using ZuHuanJingDemo2.Data;
 using ZuHuanJingDemo2.Models;
 using System.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ZuHuanJingDemo2.Controllers
 {
+    [Authorize(Policy = "AdminOnly")]
     public class CoursesController : Controller
     {
         private readonly ZuHuanJingDemo2Context _context;
@@ -54,40 +56,29 @@ namespace ZuHuanJingDemo2.Controllers
                     Course? course = null;
                     while (reader.Read())
                     {
-                        if (course == null)
+                        try
                         {
-                            int courseId = reader.GetInt32("Course_Id");
-                            string courseName = reader.GetString("Course_Name");
-                            string courseTeacher = reader.GetString("Course_Teacher");
-                            string courseIntroduction = reader.GetString("Course_Introduction");
-                            int courseMaxCount = reader.GetInt32("Course_MaxCount");
-                            int courseSumCount = reader.GetInt32("Course_SumCount");
-                            DateTime courseStartDate = reader.GetDateTime("Course_StartDate");
-                            DateTime courseEndDate = reader.GetDateTime("Course_EndDate");
-                            DateTime createDate = reader.GetDateTime("Course_CreateDate");
-                            int courseIsActive = reader.GetInt32("Course_IsActive");
-
                             course = new Course()
                             {
-                                Course_Id = courseId,
-                                Course_Name = courseName,
-                                Course_Teacher = courseTeacher,
-                                Course_Introduction = courseIntroduction,
-                                Course_MaxCount = courseMaxCount,
-                                Course_SumCount = courseSumCount,
-                                Course_StartDate = courseStartDate,
-                                Course_EndDate = courseEndDate,
-                                Course_CreateDate = createDate,
-                                Course_IsActive = courseIsActive
+                                Course_Id = reader.GetInt32("Course_Id"),
+                                Course_Name = reader.GetString("Course_Name"),
+                                Course_Teacher = reader.GetString("Course_Teacher"),
+                                Course_Introduction = reader.GetString("Course_Introduction"),
+                                Course_MaxCount = reader.GetInt32("Course_MaxCount"),
+                                Course_SumCount = reader.GetInt32("Course_SumCount"),
+                                Course_StartDate = reader.GetDateTime("Course_StartDate"),
+                                Course_EndDate = reader.GetDateTime("Course_EndDate"),
+                                Course_CreateDate = reader.GetDateTime("Course_CreateDate"),
+                                Course_IsActive = reader.GetInt32("Course_IsActive")
                             };
                         }
+                        catch { }
                     }
                     if (course == null)
                     {
                         return NotFound();
                     }
-
-                    return View(course);
+                    else { return View(course); }
                 }
                 catch (Exception ex)
                 {
@@ -353,6 +344,42 @@ namespace ZuHuanJingDemo2.Controllers
         //}
         #endregion
 
+
+        public IActionResult GetCourseMember(int courseId)
+        {
+            List<Member> members = new List<Member>();
+            string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
+            using MySqlConnection connection = new MySqlConnection(connectionString);
+            connection.Open();
+            //string selectQuery = "SELECT m.Member_Id, m.Member_Name " +
+            //        "FROM `member` m " +
+            //        $"LEFT JOIN `CourseMember` cm `MemberId` ON cm.CourseId = @CourseId" +
+            //        "WHERE m.Member_Id = cm.MemberId";
+            string selectQuery = "SELECT m.Member_Id, m.Member_Name " +
+            "FROM `member` m " +
+            "LEFT JOIN `CourseMember` cm ON cm.MemberId = m.Member_Id AND cm.CourseId = @CourseId";
+            using MySqlCommand command = new MySqlCommand(selectQuery, connection);
+            command.Parameters.AddWithValue("@CourseId", courseId);
+            try
+            {
+                using MySqlDataReader reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    Member member = new Member()
+                    {
+                        Member_Id = reader.GetInt32("Member_Id"),
+                        Member_Name = reader.GetString("Member_Name"),
+                    };
+                    members.Add(member);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Text"] = $"出現錯誤：{ex.Message}";
+                return View("~/Views/Home/ErrorView.cshtml");
+            }
+            return PartialView("~/Views/Courses/_CourseMemberList.cshtml", members);
+        }
 
         private bool CourseExists(int id)
         {

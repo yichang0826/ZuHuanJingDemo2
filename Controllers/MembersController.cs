@@ -12,9 +12,11 @@ using Google.Protobuf.WellKnownTypes;
 using ZuHuanJingDemo2.Models.ViewModel;
 using System.Data;
 using System.ComponentModel;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ZuHuanJingDemo2.Controllers
 {
+    [Authorize(Policy = "AdminOnly")]
     public class MembersController : Controller
     {
         private readonly ZuHuanJingDemo2Context _context;
@@ -54,7 +56,7 @@ namespace ZuHuanJingDemo2.Controllers
         //                string account = reader.GetString("Member_Account");
         //                string password = reader.GetString("Member_Password");
         //                string email = reader.GetString("Member_Email");
-        //                int isbaned = reader.GetInt32("Is_Baned");
+        //                int isbaned = reader.GetInt32("Member_IsBaned");
         //                DateTime createdate = reader.GetDateTime("Member_CreateDate");
         //                Member user = new()
         //                {
@@ -63,7 +65,7 @@ namespace ZuHuanJingDemo2.Controllers
         //                    Member_Account = account,
         //                    Member_Password = password,
         //                    Member_Email = email,
-        //                    Is_Baned = isbaned,
+        //                    Member_IsBaned = isbaned,
         //                    Member_CreateDate = createdate
         //                };
         //                users.Add(user);
@@ -113,7 +115,8 @@ namespace ZuHuanJingDemo2.Controllers
                             string memberAccount = reader.GetString("Member_Account");
                             string memberPassword = reader.GetString("Member_Password");
                             string memberEmail = reader.GetString("Member_Email");
-                            int isBaned = reader.GetInt32("Is_Baned");
+                            int isBaned = reader.GetInt32("Member_IsBaned");
+                            string memberRole = reader.GetString("Member_Role");
                             DateTime createDate = reader.GetDateTime("Member_CreateDate");
 
                             member = new Member()
@@ -123,7 +126,8 @@ namespace ZuHuanJingDemo2.Controllers
                                 Member_Account = memberAccount,
                                 Member_Password = memberPassword,
                                 Member_Email = memberEmail,
-                                Is_Baned = isBaned,
+                                Member_IsBaned = isBaned,
+                                Member_Role = memberRole,
                                 Member_CreateDate = createDate,
                                 Member_Licenses = new List<Models.License>()
                             };
@@ -235,7 +239,7 @@ namespace ZuHuanJingDemo2.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("Member_Name,Member_Account,Member_Password,Member_Email,Is_Baned")] Member member, int[] selectedLicenses)
+        public IActionResult Create([Bind("Member_Name,Member_Account,Member_Password,Member_Email,Member_IsBaned")] Member member, int[] selectedLicenses)
         {
             int maxmid = 0;
             try
@@ -262,15 +266,16 @@ namespace ZuHuanJingDemo2.Controllers
                 reader.Close();
                 try
                 {
-                    string insertQuery = "INSERT INTO `Member` (Member_Id, Member_Name, Member_Account, Member_Password, Member_Email, Is_Baned, Member_CreateDate) " +
-                                         "VALUES (@Member_Id,  @Member_Name, @Member_Account, @Member_Password, @Member_Email, @Is_Baned, @Member_CreateDate)";
+                    string insertQuery = "INSERT INTO `Member` (Member_Id, Member_Name, Member_Account, Member_Password, Member_Email, Member_IsBaned, Mmeber_Role, Member_CreateDate) " +
+                                         "VALUES (@Member_Id,  @Member_Name, @Member_Account, @Member_Password, @Member_Email, @Member_IsBaned, @Mmeber_Role, @Member_CreateDate)";
                     using MySqlCommand command = new(insertQuery, connection);
                     command.Parameters.AddWithValue("@Member_Id", maxmid);
                     command.Parameters.AddWithValue("@Member_Name", member.Member_Name);
                     command.Parameters.AddWithValue("@Member_Account", member.Member_Account);
                     command.Parameters.AddWithValue("@Member_Password", member.Member_Password);
                     command.Parameters.AddWithValue("@Member_Email", member.Member_Email);
-                    command.Parameters.AddWithValue("@Is_Baned", member.Is_Baned);
+                    command.Parameters.AddWithValue("@Member_IsBaned", member.Member_IsBaned);
+                    command.Parameters.AddWithValue("@Member_Role", member.Member_Role);
                     command.Parameters.AddWithValue("@Member_CreateDate", DateTime.Now);
                     command.ExecuteNonQuery();
                 }
@@ -375,7 +380,8 @@ namespace ZuHuanJingDemo2.Controllers
                             string memberAccount = reader1.GetString("Member_Account");
                             string memberPassword = reader1.GetString("Member_Password");
                             string memberEmail = reader1.GetString("Member_Email");
-                            int isBaned = reader1.GetInt32("Is_Baned");
+                            int isBaned = reader1.GetInt32("Member_IsBaned");
+                            string memberRole = reader1.GetString("Member_Role");
                             DateTime createDate = reader1.GetDateTime("Member_CreateDate");
 
                             member = new Member()
@@ -385,7 +391,8 @@ namespace ZuHuanJingDemo2.Controllers
                                 Member_Account = memberAccount,
                                 Member_Password = memberPassword,
                                 Member_Email = memberEmail,
-                                Is_Baned = isBaned,
+                                Member_IsBaned = isBaned,
+                                Member_Role = memberRole,
                                 Member_CreateDate = createDate,
                                 Member_Licenses = new()
                             };
@@ -430,14 +437,13 @@ namespace ZuHuanJingDemo2.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("Member_Id,Member_Name,Member_Account,Member_Email,Is_Baned,Member_CreateDate")] Member member, int[] selectedLicenses)
+        public IActionResult Edit(int id, [Bind("Member_Id,Member_Name,Member_Account,Member_Email,Member_IsBaned,Member_Role,Member_CreateDate")] Member member, int[] selectedLicenses)
         {
             if (id != member.Member_Id)
             {
                 TempData["Text"] = $"出現錯誤：{id} != {member.Member_Id}";
                 return View("~/Views/Home/ErrorView.cshtml");
             }
-
             try
             {
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");

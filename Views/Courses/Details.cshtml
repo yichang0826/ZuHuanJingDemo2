@@ -1,73 +1,4 @@
-﻿@*@model ZuHuanJingDemo2.Models.Course
-@{
-    ViewData["Title"] = "Details";
-}
-<h1>課程細節</h1>
-<div>
-    <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model?.Course_Id">Edit</a>&ensp;
-    <a class="btn btn-info" asp-action="Index">Back to List</a>
-</div>
-<hr />
-<div class="row">
-    <div class="col-2">
-        <strong>@Html.DisplayNameFor(model => model.Course_Name)</strong>
-    </div>
-    <div class="col-6">
-        @Html.DisplayFor(model => model.Course_Name)
-    </div>
-    <div class="col-2">
-        <strong>@Html.DisplayNameFor(model => model.Course_Teacher)</strong>
-    </div>
-    <div class="col-2">
-        @Html.DisplayFor(model => model.Course_Teacher)
-    </div>
-    <div class="col-4">
-        <strong>@Html.DisplayNameFor(model => model.Course_IsActive)</strong>
-    </div>
-    <div class="col-8">
-        @(Model.Course_IsActive == 1 ? "是" : "否")
-    </div>
-
-    <div class="col-4">
-        <strong>@Html.DisplayNameFor(model => model.Course_MaxCount)</strong>
-    </div>
-    <div class="col-8">
-        @Html.DisplayFor(model => model.Course_MaxCount)
-    </div>
-    <div class="col-4">
-        <strong>@Html.DisplayNameFor(model => model.Course_SumCount)</strong>
-    </div>
-    <div class="col-8">
-        @Html.DisplayFor(model => model.Course_SumCount)
-    </div>
-    <div class="col-4">
-        <strong>@Html.DisplayNameFor(model => model.Course_StartDate)</strong>
-    </div>
-    <div class="col-8">
-        @Html.DisplayFor(model => model.Course_StartDate)
-    </div>
-    <div class="col-4">
-        <strong>@Html.DisplayNameFor(model => model.Course_EndDate)</strong>
-    </div>
-    <div class="col-8">
-        @Html.DisplayFor(model => model.Course_EndDate)
-    </div>
-    <div class="col-4">
-        <strong>@Html.DisplayNameFor(model => model.Course_CreateDate)</strong>
-    </div>
-    <div class="col-8">
-        @Html.DisplayFor(model => model.Course_CreateDate)
-    </div>
-    <hr />
-    <div class="col-12">
-        <h4><strong>@Html.DisplayNameFor(model => model.Course_Introduction)</strong></h4>
-    </div>
-    <div class="card">
-        @Html.Raw(Model.Course_Introduction)
-    </div>
-
-</div>*@
-@model ZuHuanJingDemo2.Models.Course
+﻿@model ZuHuanJingDemo2.Models.Course
 @{
     ViewData["Title"] = "Details";
 }
@@ -78,8 +9,9 @@
         <div class="card-header">
             @*<div class="d-flex justify-content-between">*@
             <div class="d-flex">
-                <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model?.Course_Id">Edit</a>&ensp;
-                <a class="btn btn-info" asp-action="Index">Back to List</a>
+                <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model?.Course_Id">編輯</a>&ensp;
+                <a class="btn btn-info" asp-action="Index">返回</a>&ensp;
+                <button id="showMembersBtn" class="btn" style="background-color:lightgreen" data-toggle="modal" data-target="#membersModal">課程學生</button>
             </div>
         </div>
         <div class="card-body">
@@ -94,7 +26,14 @@
                 </div>
                 <div class="col-md-3">
                     <h5 class="card-title">@Html.DisplayNameFor(model => model.Course_IsActive)</h5>
-                    <p class="card-text">@Html.DisplayFor(model => model.Course_IsActive)</p>
+                    @if (Model.Course_IsActive == 1)
+                    {
+                        <p class="card-text">是</p>
+                    }
+                    else
+                    {
+                        <p class="card-text">否</p>
+                    }
                 </div>
                 <div class="col-md-3">
                     <h5 class="card-title">人數</h5>
@@ -128,3 +67,81 @@
         </div>
     </div>
 }
+<!-- Add the modal markup -->
+<div id="membersModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Course Members</h5>
+            </div>
+            <div class="modal-body">
+                <!-- Placeholder for the course member list -->
+                <div id="courseMemberListPlaceholder"></div>
+                <p><small>*點旁邊關閉</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+        $("#showMembersBtn").click(function () {
+            var courseId = @Model?.Course_Id; // 替換成您要查詢的課程 ID
+
+            $.ajax({
+                url: '/Courses/GetCourseMember',
+                type: 'GET',
+                data: { courseId: courseId },
+                success: function (response) {
+                    // 成功收到伺服器回應的處理
+                    // response 是伺服器回傳的資料，根據您的需求進行處理
+                    // 顯示 members 的小視窗
+                    $("#courseMemberListPlaceholder").html(response);
+                    $("#membersModal").modal("show");
+                },
+                error: function (xhr, status, error) {
+                    // 發生錯誤時的處理
+                    console.error(error);
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    #membersModal {
+        display: none; /* 預設隱藏 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 500;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        outline: 0;
+    }
+
+        #membersModal .modal-dialog {
+            position: relative;
+            margin: 1.75rem auto;
+            pointer-events: none;
+        }
+
+        #membersModal .modal-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            z-index: 9999;
+            pointer-events: auto;
+            background-clip: padding-box;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 0.3rem;
+            outline: 0;
+        }
+
+    .modal-backdrop {
+        z-index: 50;
+    }
+</style>

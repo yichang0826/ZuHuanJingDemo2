@@ -10,9 +10,11 @@ using ZuHuanJingDemo2.Data;
 using ZuHuanJingDemo2.Models;
 using Google.Protobuf.WellKnownTypes;
 using System.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ZuHuanJingDemo2.Controllers
 {
+    [Authorize]
     public class MainController : Controller
     {
         private readonly ZuHuanJingDemo2Context _context;
@@ -37,6 +39,7 @@ namespace ZuHuanJingDemo2.Controllers
 
         public IActionResult CourseDetails(int id)
         {
+            string memberid = User.FindFirst(MyClaimsTypes.MemberID)?.Value;
             try
             {
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
@@ -44,7 +47,7 @@ namespace ZuHuanJingDemo2.Controllers
                 connection.Open();
                 string selectQuery = "SELECT c.*, cm.CourseMember_CreateDate " +
                     "FROM `Course` c " +
-                    $"LEFT JOIN `CourseMember` cm ON cm.CourseId = c.Course_Id AND cm.MemberId = {id} " +
+                    $"LEFT JOIN `CourseMember` cm ON cm.CourseId = c.Course_Id AND cm.MemberId = {memberid} " +
                     "WHERE Course_Id = @CourseId";
 
                 using MySqlCommand command = new MySqlCommand(selectQuery, connection);
@@ -90,6 +93,9 @@ namespace ZuHuanJingDemo2.Controllers
                     {
                         return NotFound();
                     }
+                    string updateQuery = "UPDATE `Course` SET `Course_SumCount` = `Course_SumCount` + 1;";
+                    selectQuery = "SELECT `Course_SumCount` FROM `Course`;";
+
                     return View(course);
                 }
                 catch (Exception ex)
@@ -109,7 +115,6 @@ namespace ZuHuanJingDemo2.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Apply(int applyCourseId, int applyUserId)
         {
-            int maxmid = 0;
             try
             {
                 string connectionString = _configuration.GetConnectionString("ZuHuanJingDemo2Context");
@@ -128,12 +133,15 @@ namespace ZuHuanJingDemo2.Controllers
                         // 檢查插入操作的影響行數，確保成功插入記錄
                         if (rowsAffected > 0)
                         {
-                            
-                            // 插入成功的處理
+                            // 更新 Course_SumCount 的值
+                            string updateQuery = $"UPDATE `Course` SET Course_SumCount = Course_SumCount + 1 WHERE Course_Id = {applyCourseId}";
+                            using (MySqlCommand updateCommand = new MySqlCommand(updateQuery, connection))
+                            { updateCommand.ExecuteNonQuery(); }
                         }
                         else
                         {
-                            // 插入失敗的處理
+                            TempData["Text"] = "出現錯誤";
+                            return View("~/Views/Home/ErrorView.cshtml");
                         }
                     }
 
@@ -143,7 +151,7 @@ namespace ZuHuanJingDemo2.Controllers
                     TempData["Text"] = $"出現錯誤：{ex.Message}";
                     return View("~/Views/Home/ErrorView.cshtml");
                 }
-                return RedirectToAction("CourseDetails", new {id = applyCourseId });
+                return RedirectToAction("CourseDetails", new { id = applyCourseId });
                 //return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -181,7 +189,8 @@ namespace ZuHuanJingDemo2.Controllers
                         string memberName = reader.GetString("Member_Name");
                         string memberAccount = reader.GetString("Member_Account");
                         string memberEmail = reader.GetString("Member_Email");
-                        int isBaned = reader.GetInt32("Is_Baned");
+                        int memberIsBaned = reader.GetInt32("Member_IsBaned");
+                        string memberRole = reader.GetString("Member_Role");
                         DateTime createDate = reader.GetDateTime("Member_CreateDate");
 
                         Member member = new Member()
@@ -190,7 +199,8 @@ namespace ZuHuanJingDemo2.Controllers
                             Member_Name = memberName,
                             Member_Account = memberAccount,
                             Member_Email = memberEmail,
-                            Is_Baned = isBaned,
+                            Member_IsBaned = memberIsBaned,
+                            Member_Role = memberRole,
                             Member_CreateDate = createDate
                         };
                         members.Add(member);
@@ -262,5 +272,7 @@ namespace ZuHuanJingDemo2.Controllers
                 return RedirectToAction("ErrorView", "Home");
             }
         }
+
+        
     }
 }

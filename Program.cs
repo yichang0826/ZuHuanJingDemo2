@@ -4,29 +4,58 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ZuHuanJingDemo2.Data;
+using ZuHuanJingDemo2.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ZuHuanJingDemo2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ZuHuanJingDemo2Context") ?? throw new InvalidOperationException("Connection string 'MySQLonAzureConnedtion' not found.")));
 
 // Add services to the container.
-builder.Services.AddControllersWithViews(options =>
-{
-    var policy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-    options.Filters.Add(new AuthorizeFilter(policy));///Set global authority filter
-});
+//builder.Services.AddControllersWithViews(options =>
+//    {
+//        var policy = new AuthorizationPolicyBuilder()
+//            .RequireAuthenticatedUser()
+//            .Build();
+//        options.Filters.Add(new AuthorizeFilter(policy));///Set global authority filter
+//    }
+//)
+//    .AddRazorOptions(options =>
+//        {
+//            //options.ViewLocationFormats.Clear();///Clear the original path
+//            options.ViewLocationFormats.Add("/views/System/{1}/{0}.cshtml");
+//            options.ViewLocationFormats.Add("/views/Article/{1}/{0}.cshtml");
+//            options.ViewLocationFormats.Add("/views/Shared/{0}.cshtml");
+//        }
+//    );
 
 #region verify the user with loginMySQLonAzureConnedtion
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
+        {
+            options.LoginPath = "/Home/Login";
+            options.AccessDeniedPath = "/Home/ErrorView";
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(10); // 设置Cookie过期时间为10分钟
+            options.SlidingExpiration = true; // 启用滑动过期时间
+        }
+    );
+builder.Services.AddAuthorization(options =>
     {
-        options.LoginPath = "/Home/Login";
-        options.AccessDeniedPath = "/Home/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(10); // 设置Cookie过期时间为10分钟
-        options.SlidingExpiration = true; // 启用滑动过期时间
-    });
+        options.AddPolicy("AdminOnly", policy =>
+        {
+            policy.RequireClaim(MyClaimsTypes.Role, "Admin");
+        });
+        options.AddPolicy("MemberOnly", policy =>
+        {
+            policy.RequireClaim(MyClaimsTypes.Role, "Member");
+        });
+        options.AddPolicy("AdminAndMemberOnly", policy =>
+        {
+            policy.RequireAssertion(context =>
+                context.User.HasClaim(c =>
+                    c.Type == MyClaimsTypes.Role && (c.Value == "Admin" || c.Value == "Member")));
+        });
+    }
+);
 builder.Services.AddAuthenticationCore();
 #endregion
 

@@ -31,8 +31,11 @@ namespace ZuHuanJingDemo2.Models
         [Required(ErrorMessage = "郵箱為必填項目")]
         public string? Member_Email { get; set; }
 
+        [Display(Name = "腳色")]
+        public string? Member_Role { get; set; } = "Guest";
+
         [Display(Name = "封鎖")]
-        public int Is_Baned { get; set; } = 0;
+        public int Member_IsBaned { get; set; } = 0;
 
         [Display(Name = "創建日期")]
         public DateTime Member_CreateDate { get; set; } = DateTime.Now;
